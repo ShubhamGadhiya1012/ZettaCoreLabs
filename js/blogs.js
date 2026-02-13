@@ -5,7 +5,7 @@
 let allBlogs = [];
 
 // =================================
-// BLOCKCHAIN LOADER FUNCTIONS
+// MINIMALIST LOADER FUNCTIONS
 // =================================
 function showBlockchainLoader() {
     const loader = document.createElement('div');
@@ -13,25 +13,10 @@ function showBlockchainLoader() {
     loader.id = 'blockchainLoader';
     loader.innerHTML = `
         <div class="blockchain-loader-container">
-            <div class="blockchain-network">
-                <div class="connection-line connection-line-1"></div>
-                <div class="connection-line connection-line-2"></div>
-                <div class="block-center"></div>
-                <div class="block-orbit block-orbit-1"></div>
-                <div class="block-orbit block-orbit-2"></div>
-                <div class="block-orbit block-orbit-3"></div>
-                <div class="block-orbit block-orbit-4"></div>
-            </div>
-            <div class="loading-text">
-                Loading Blogs
-                <div class="loading-dots">
-                    <div class="loading-dot"></div>
-                    <div class="loading-dot"></div>
-                    <div class="loading-dot"></div>
-                </div>
-            </div>
-            <div class="progress-container">
-                <div class="progress-bar"></div>
+            <div class="loader-spinner">
+                <div class="spinner-ring"></div>
+                <div class="spinner-ring"></div>
+                <div class="spinner-ring"></div>
             </div>
         </div>
     `;
@@ -86,7 +71,7 @@ async function loadBlogsFromFirestore() {
             } else {
                 showEmptyState();
             }
-        }, 1000);
+        }, 1500);
         
     } catch (error) {
         console.error('❌ Error loading blogs:', error);
@@ -678,4 +663,4 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-console.log('✅ blogs.js with Firebase and Blockchain Loader loaded successfully');
+console.log('✅ blogs.js with Minimalist Loader loaded successfully');

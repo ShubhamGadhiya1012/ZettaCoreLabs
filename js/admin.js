@@ -1,784 +1,568 @@
-// =================================
-// ADMIN PANEL WITH FIREBASE (FREE PLAN - BASE64 IMAGES)
-// =================================
+// ============================================
+// ZETTACORELAB ADMIN — admin.js
+// Deep Navy + Violet Theme
+// Image Compression · Icon Rail Sidebar · Datepicker
+// ============================================
 
-// Admin credentials
-const ADMIN_USERNAME = 'ADMIN';
-const ADMIN_PASSWORD = 'Admin@123';
+'use strict';
 
-// State
-let blogs = [];
-let editingBlogId = null;
-let deleteTargetId = null;
-let datepickerInstance = null;
+// ---- Auth ----
+const ADMIN_USER = 'ADMIN';
+const ADMIN_PASS = 'Admin@123';
 
-// =================================
-// CUSTOM DATEPICKER
-// =================================
-class CustomDatepicker {
-    constructor(inputId, dropdownId) {
-        this.input = document.getElementById(inputId);
-        this.dropdown = document.getElementById(dropdownId);
-        this.currentMonth = new Date();
-        this.selectedDate = null;
-        this.init();
-    }
-    
-    init() {
-        if (!this.input || !this.dropdown) return;
-        this.setDate(new Date());
-        
-        this.input.addEventListener('click', () => this.toggle());
-        
-        const prevBtn = document.getElementById('prevMonth');
-        const nextBtn = document.getElementById('nextMonth');
-        const todayBtn = document.getElementById('todayBtn');
-        const clearBtn = document.getElementById('clearBtn');
-        
-        if (prevBtn) {
-            prevBtn.addEventListener('click', () => {
-                this.currentMonth.setMonth(this.currentMonth.getMonth() - 1);
-                this.render();
-            });
+// ---- State ----
+let blogs          = [];
+let editingId      = null;
+let deleteTarget   = null;
+let dp             = null;
+let sbExpanded     = true;
+let compressedB64  = null;    // result of compressImage()
+let formBound      = false;   // prevent duplicate listeners
+
+// ============================================
+// IMAGE COMPRESSION
+// Target ≤ 500 KB — accepts any size
+// Two-phase: quality reduction → dimension scaling
+// ============================================
+const LIMIT = 500 * 1024;   // 500 KB in bytes
+
+/**
+ * @param {File} file
+ * @returns {Promise<{base64:string, origKB:number, finalKB:number, compressed:boolean}>}
+ */
+function compressImage(file) {
+  return new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onload = e => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Cannot load image'));
+      img.onload = () => {
+        const origKB = Math.round(file.size / 1024);
+
+        // Already within limit → return as-is
+        if (file.size <= LIMIT) {
+          resolve({ base64: e.target.result, origKB, finalKB: origKB, compressed: false });
+          return;
         }
-        
-        if (nextBtn) {
-            nextBtn.addEventListener('click', () => {
-                this.currentMonth.setMonth(this.currentMonth.getMonth() + 1);
-                this.render();
-            });
+
+        // Start dimensions — cap at 1920px
+        let w = img.width, h = img.height;
+        const maxDim = 1920;
+        if (w > maxDim || h > maxDim) {
+          const r = Math.min(maxDim / w, maxDim / h);
+          w = Math.round(w * r); h = Math.round(h * r);
         }
-        
-        if (todayBtn) {
-            todayBtn.addEventListener('click', () => {
-                this.setDate(new Date());
-                this.hide();
-            });
+
+        const canvas = document.createElement('canvas');
+        const ctx    = canvas.getContext('2d');
+
+        function tryEncode(cw, ch, q) {
+          canvas.width = cw; canvas.height = ch;
+          ctx.clearRect(0, 0, cw, ch);
+          ctx.drawImage(img, 0, 0, cw, ch);
+          const data64 = canvas.toDataURL('image/jpeg', q);
+          // Estimate real bytes from base64 length
+          const header = 'data:image/jpeg;base64,'.length;
+          const bytes  = Math.round((data64.length - header) * 0.75);
+          return { data64, bytes };
         }
-        
-        if (clearBtn) {
-            clearBtn.addEventListener('click', () => {
-                this.selectedDate = null;
-                this.input.value = '';
-                this.hide();
-            });
+
+        // Phase 1 — reduce quality 0.85 → 0.10
+        let quality = 0.85;
+        let best = null, bestKB = origKB;
+        for (let i = 0; i < 9 && quality >= 0.10; i++, quality = +(quality - 0.1).toFixed(2)) {
+          const { data64, bytes } = tryEncode(w, h, quality);
+          best = data64; bestKB = Math.round(bytes / 1024);
+          if (bytes <= LIMIT) break;
         }
-        
-        document.addEventListener('click', (e) => {
-            if (!this.input.contains(e.target) && !this.dropdown.contains(e.target)) {
-                this.hide();
-            }
-        });
-        
-        this.render();
-    }
-    
-    toggle() {
-        this.dropdown.classList.toggle('show');
-        if (this.dropdown.classList.contains('show')) {
-            this.render();
+
+        // Phase 2 — scale down dimensions if still too large
+        if (bestKB > Math.round(LIMIT / 1024)) {
+          let scale = 0.85;
+          while (scale >= 0.25) {
+            const sw = Math.round(w * scale), sh = Math.round(h * scale);
+            const { data64, bytes } = tryEncode(sw, sh, 0.70);
+            best = data64; bestKB = Math.round(bytes / 1024);
+            if (bytes <= LIMIT) break;
+            scale = +(scale - 0.10).toFixed(2);
+          }
         }
-    }
-    
-    show() {
-        this.dropdown.classList.add('show');
-        this.render();
-    }
-    
-    hide() {
-        this.dropdown.classList.remove('show');
-    }
-    
-    setDate(date) {
-        this.selectedDate = date;
-        this.currentMonth = new Date(date);
-        this.input.value = this.formatDate(date);
-        this.render();
-    }
-    
-    formatDate(date) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    }
-    
-    render() {
-        const titleEl = document.getElementById('datepickerTitle');
-        const daysContainer = document.getElementById('datepickerDays');
-        
-        if (!titleEl || !daysContainer) return;
-        
-        const monthYear = this.currentMonth.toLocaleDateString('en-US', { 
-            month: 'long', 
-            year: 'numeric' 
-        });
-        titleEl.textContent = monthYear;
-        
-        daysContainer.innerHTML = '';
-        
-        const year = this.currentMonth.getFullYear();
-        const month = this.currentMonth.getMonth();
-        
-        const firstDay = new Date(year, month, 1);
-        const firstDayOfWeek = firstDay.getDay();
-        
-        const lastDay = new Date(year, month + 1, 0);
-        const lastDate = lastDay.getDate();
-        
-        const prevMonthLastDay = new Date(year, month, 0);
-        const prevMonthLastDate = prevMonthLastDay.getDate();
-        
-        for (let i = firstDayOfWeek - 1; i >= 0; i--) {
-            const day = prevMonthLastDate - i;
-            const dayEl = this.createDayElement(day, 'other-month');
-            daysContainer.appendChild(dayEl);
-        }
-        
-        const today = new Date();
-        for (let day = 1; day <= lastDate; day++) {
-            const date = new Date(year, month, day);
-            const dayEl = this.createDayElement(day, '');
-            
-            if (this.isSameDate(date, today)) {
-                dayEl.classList.add('today');
-            }
-            
-            if (this.selectedDate && this.isSameDate(date, this.selectedDate)) {
-                dayEl.classList.add('selected');
-            }
-            
-            dayEl.addEventListener('click', () => {
-                this.setDate(date);
-                this.hide();
-            });
-            
-            daysContainer.appendChild(dayEl);
-        }
-        
-        const totalDays = firstDayOfWeek + lastDate;
-        const remainingDays = totalDays % 7 === 0 ? 0 : 7 - (totalDays % 7);
-        
-        for (let day = 1; day <= remainingDays; day++) {
-            const dayEl = this.createDayElement(day, 'other-month');
-            daysContainer.appendChild(dayEl);
-        }
-    }
-    
-    createDayElement(day, className) {
-        const dayEl = document.createElement('div');
-        dayEl.className = `datepicker-day ${className}`;
-        dayEl.textContent = day;
-        return dayEl;
-    }
-    
-    isSameDate(date1, date2) {
-        return date1.getFullYear() === date2.getFullYear() &&
-               date1.getMonth() === date2.getMonth() &&
-               date1.getDate() === date2.getDate();
-    }
+
+        resolve({ base64: best, origKB, finalKB: bestKB, compressed: true });
+      };
+      img.src = e.target.result;
+    };
+    fr.onerror = () => reject(new Error('File read failed'));
+    fr.readAsDataURL(file);
+  });
 }
 
-// =================================
-// INITIALIZE ON PAGE LOAD
-// =================================
-window.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Admin panel loaded with Firebase');
-    
-    if (sessionStorage.getItem('adminLoggedIn') === 'true') {
-        console.log('✅ User already logged in');
-        showAdminPanel();
+// ============================================
+// DATEPICKER
+// ============================================
+class Datepicker {
+  constructor() {
+    this.input    = document.getElementById('blogDate');
+    this.pop      = document.getElementById('dpPop');
+    this.moEl     = document.getElementById('dpMo');
+    this.gridEl   = document.getElementById('dpGrid');
+    this.current  = new Date();
+    this.selected = null;
+    if (!this.input || !this.pop) return;
+    this._bind();
+    this.pick(new Date());
+  }
+
+  _bind() {
+    this.input.addEventListener('click', e => { e.stopPropagation(); this.toggle(); });
+    document.getElementById('dpPrev')?.addEventListener('click', () => { this.current.setMonth(this.current.getMonth() - 1); this.render(); });
+    document.getElementById('dpNext')?.addEventListener('click', () => { this.current.setMonth(this.current.getMonth() + 1); this.render(); });
+    document.getElementById('dpToday')?.addEventListener('click', () => { this.pick(new Date()); this.hide(); });
+    document.getElementById('dpClear')?.addEventListener('click', () => { this.selected = null; this.input.value = ''; this.hide(); });
+    document.addEventListener('click', e => {
+      if (!this.pop.contains(e.target) && !this.input.contains(e.target)) this.hide();
+    });
+  }
+
+  toggle() { this.pop.classList.toggle('show'); if (this.isOpen()) this.render(); }
+  hide()   { this.pop.classList.remove('show'); }
+  isOpen() { return this.pop.classList.contains('show'); }
+
+  fmt(d) {
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+
+  same(a, b) { return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
+
+  pick(d) { this.selected = d; this.current = new Date(d); this.input.value = this.fmt(d); this.render(); }
+
+  setStr(s) { if (!s) return; const d = new Date(s+'T00:00:00'); if (!isNaN(d)) this.pick(d); }
+
+  reset() { this.pick(new Date()); }
+
+  render() {
+    if (!this.moEl || !this.gridEl) return;
+    this.moEl.textContent = this.current.toLocaleDateString('en-US', { month:'long', year:'numeric' });
+    this.gridEl.innerHTML = '';
+
+    const yr = this.current.getFullYear(), mo = this.current.getMonth();
+    const firstDow = new Date(yr, mo, 1).getDay();
+    const lastDate = new Date(yr, mo+1, 0).getDate();
+    const prevLast = new Date(yr, mo, 0).getDate();
+    const today    = new Date();
+    const trailing = (firstDow + lastDate) % 7 === 0 ? 0 : 7 - ((firstDow + lastDate) % 7);
+
+    const mk = (n, cls) => {
+      const el = document.createElement('div');
+      el.className = `dp-day${cls ? ' '+cls : ''}`;
+      el.textContent = n;
+      return el;
+    };
+
+    for (let i = firstDow-1; i >= 0; i--) this.gridEl.appendChild(mk(prevLast-i, 'other'));
+
+    for (let d = 1; d <= lastDate; d++) {
+      const date = new Date(yr, mo, d);
+      let cls = '';
+      if (this.same(date, today)) cls += ' today';
+      if (this.selected && this.same(date, this.selected)) cls += ' sel';
+      const el = mk(d, cls.trim());
+      el.addEventListener('click', () => { this.pick(date); this.hide(); });
+      this.gridEl.appendChild(el);
+    }
+
+    for (let d = 1; d <= trailing; d++) this.gridEl.appendChild(mk(d, 'other'));
+  }
+}
+
+// ============================================
+// INIT
+// ============================================
+document.addEventListener('DOMContentLoaded', () => {
+  if (sessionStorage.getItem('adminLoggedIn') === 'true') {
+    initPanel();
+  } else {
+    showLogin();
+  }
+  bindLogin();
+  bindSidebar();
+  bindModal();
+  bindSearch();
+  bindDragDrop();
+});
+
+// ============================================
+// LOGIN
+// ============================================
+function bindLogin() {
+  document.getElementById('loginForm')?.addEventListener('submit', e => {
+    e.preventDefault();
+    const u = document.getElementById('username').value.trim();
+    const p = document.getElementById('password').value;
+    const err = document.getElementById('loginErr');
+    if (u === ADMIN_USER && p === ADMIN_PASS) {
+      sessionStorage.setItem('adminLoggedIn', 'true');
+      initPanel();
     } else {
-        console.log('🔒 User needs to login');
-        showLoginSection();
+      err.textContent = 'Invalid username or password. Please try again.';
+      err.classList.add('show');
+      setTimeout(() => err.classList.remove('show'), 3500);
     }
-});
-
-// =================================
-// SHOW/HIDE SECTIONS
-// =================================
-function showLoginSection() {
-    const loginSection = document.getElementById('loginSection');
-    const adminPanel = document.getElementById('adminPanel');
-    
-    if (loginSection) loginSection.style.display = 'flex';
-    if (adminPanel) adminPanel.style.display = 'none';
+  });
 }
 
-function showAdminPanel() {
-    const loginSection = document.getElementById('loginSection');
-    const adminPanel = document.getElementById('adminPanel');
-    
-    if (loginSection) loginSection.style.display = 'none';
-    if (adminPanel) adminPanel.style.display = 'grid';
-    
-    loadBlogs();
-    
-    if (!datepickerInstance) {
-        datepickerInstance = new CustomDatepicker('blogDate', 'datepickerDropdown');
+function showLogin() {
+  document.getElementById('loginSection').style.display = 'flex';
+  document.getElementById('adminPanel').style.display   = 'none';
+}
+
+function initPanel() {
+  document.getElementById('loginSection').style.display = 'none';
+  document.getElementById('adminPanel').style.display   = 'flex';
+  // Drawer open by default on desktop
+  document.getElementById('sidebar')?.classList.add('open');
+  document.getElementById('mainArea')?.classList.add('shifted');
+  if (!dp) dp = new Datepicker();
+  if (!formBound) { bindBlogForm(); formBound = true; }
+  loadBlogs();
+}
+
+// ============================================
+// SIDEBAR
+// ============================================
+function bindSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const back    = document.getElementById('sbBack');
+  const mobBtn  = document.getElementById('mobMenuBtn');
+  const deskBtn = document.getElementById('deskToggle');
+  const sbTog   = document.getElementById('sbToggle');
+  const main    = document.getElementById('mainArea');
+
+  // Mobile open
+  mobBtn?.addEventListener('click', () => {
+    sidebar.classList.add('mobile-open');
+    back.classList.add('show');
+  });
+
+  // Close via backdrop
+  back?.addEventListener('click', closeMobile);
+
+  function closeMobile() {
+    sidebar.classList.remove('mobile-open');
+    back.classList.remove('show');
+  }
+
+  // Desktop icon-toggle in topbar
+  deskBtn?.addEventListener('click', () => toggleDesktop());
+
+  // Desktop toggle inside sidebar footer
+  sbTog?.addEventListener('click', () => toggleDesktop());
+
+  function toggleDesktop() {
+    sbExpanded = !sbExpanded;
+    sidebar.classList.toggle('open', sbExpanded);
+    main?.classList.toggle('shifted', sbExpanded);
+  }
+
+  // Logout
+  document.getElementById('logoutBtn')?.addEventListener('click', e => {
+    e.preventDefault();
+    sessionStorage.removeItem('adminLoggedIn');
+    showLogin();
+    document.getElementById('loginForm')?.reset();
+    closeMobile();
+  });
+}
+
+// ============================================
+// DRAG & DROP
+// ============================================
+function bindDragDrop() {
+  const zone = document.getElementById('fileZone');
+  if (!zone) return;
+  ['dragenter','dragover'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.add('drag'); }));
+  ['dragleave','drop'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.remove('drag'); }));
+  zone.addEventListener('drop', e => {
+    const f = e.dataTransfer?.files?.[0];
+    if (f?.type.startsWith('image/')) processImage(f);
+  });
+}
+
+// ============================================
+// BLOG FORM
+// ============================================
+function bindBlogForm() {
+  document.getElementById('blogImage')?.addEventListener('change', e => {
+    const f = e.target.files?.[0];
+    if (f) processImage(f);
+  });
+
+  document.getElementById('blogForm')?.addEventListener('submit', async e => {
+    e.preventDefault();
+    await doSave();
+  });
+
+  document.getElementById('cancelBtn')?.addEventListener('click', resetForm);
+}
+
+// Image processing + preview
+async function processImage(file) {
+  const prev = document.getElementById('imgPrev');
+  const img  = document.getElementById('prevImg');
+  const meta = document.getElementById('prevMeta');
+  if (!prev || !img) return;
+
+  prev.classList.add('show');
+  img.style.opacity = '0.3';
+  meta.innerHTML = '<span>⏳ Compressing image…</span>';
+
+  try {
+    const r = await compressImage(file);
+    compressedB64 = r.base64;
+    img.src = r.base64;
+    img.style.opacity = '1';
+
+    if (r.compressed) {
+      meta.innerHTML = `<span>📦 ${r.origKB} KB → ${r.finalKB} KB</span><span class="ctag">✓ Compressed</span>`;
+    } else {
+      meta.innerHTML = `<span>📦 ${r.origKB} KB</span><span class="ctag" style="background:rgba(56,189,248,.1);border-color:rgba(56,189,248,.25);color:var(--info)">✓ Ready</span>`;
     }
+    console.log(`🖼 Image: ${r.origKB}KB → ${r.finalKB}KB, compressed=${r.compressed}`);
+  } catch (err) {
+    compressedB64 = null;
+    prev.classList.remove('show');
+    toast('Image error: ' + err.message, 'err');
+  }
 }
 
-// =================================
-// LOGIN FUNCTIONALITY
-// =================================
-const loginForm = document.getElementById('loginForm');
-if (loginForm) {
-    loginForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-        const errorMsg = document.getElementById('loginError');
-        
-        console.log('🔐 Login attempt for:', username);
-        
-        if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-            console.log('✅ Login successful');
-            sessionStorage.setItem('adminLoggedIn', 'true');
-            showAdminPanel();
-        } else {
-            console.log('❌ Login failed');
-            if (errorMsg) {
-                errorMsg.textContent = 'Invalid username or password';
-                errorMsg.classList.add('show');
-                setTimeout(() => {
-                    errorMsg.classList.remove('show');
-                }, 3000);
-            }
-        }
-    });
-}
+// Save
+async function doSave() {
+  const btn = document.getElementById('submitBtn');
+  const txt = document.getElementById('submitTxt');
+  const orig = txt.textContent;
+  btn.disabled = true;
+  txt.innerHTML = '<span class="spin"></span>&nbsp;Saving…';
 
-// =================================
-// SIDEBAR TOGGLE
-// =================================
-const toggleSidebarBtn = document.getElementById('toggleSidebar');
-const closeSidebarBtn = document.getElementById('closeSidebar');
-const sidebar = document.querySelector('.sidebar');
+  try {
+    const data = {
+      title:    val('blogTitle'),
+      category: val('blogCategory'),
+      author:   val('blogAuthor'),
+      date:     val('blogDate'),
+      readTime: val('blogReadTime'),
+      featured: val('blogFeatured'),
+      excerpt:  val('blogExcerpt'),
+      content:  val('blogContent'),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
 
-if (toggleSidebarBtn && sidebar) {
-    toggleSidebarBtn.addEventListener('click', function() {
-        sidebar.classList.add('open');
-    });
-}
-
-if (closeSidebarBtn && sidebar) {
-    closeSidebarBtn.addEventListener('click', function() {
-        sidebar.classList.remove('open');
-    });
-}
-
-document.addEventListener('click', function(e) {
-    if (!sidebar) return;
-    
-    const toggleBtn = document.getElementById('toggleSidebar');
-    
-    if (window.innerWidth <= 1024) {
-        if (!sidebar.contains(e.target) && toggleBtn && !toggleBtn.contains(e.target)) {
-            sidebar.classList.remove('open');
-        }
+    if (compressedB64) {
+      data.imageUrl = compressedB64;
+    } else if (editingId) {
+      data.imageUrl = blogs.find(b => b.id === editingId)?.imageUrl || null;
     }
-});
 
-// =================================
-// LOGOUT
-// =================================
-const logoutBtn = document.getElementById('logoutBtn');
-if (logoutBtn) {
-    logoutBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        console.log('👋 Logging out');
-        sessionStorage.removeItem('adminLoggedIn');
-        showLoginSection();
-        const loginForm = document.getElementById('loginForm');
-        if (loginForm) loginForm.reset();
-    });
-}
+    if (!editingId) data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
 
-// =================================
-// IMAGE PREVIEW
-// =================================
-const blogImageInput = document.getElementById('blogImage');
-if (blogImageInput) {
-    blogImageInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        const preview = document.getElementById('imagePreview');
-        
-        if (!preview) return;
-        
-        if (file) {
-            // Check file size (max 500KB for base64)
-            if (file.size > 500 * 1024) {
-                showNotification('Image size should be less than 500KB for optimal performance', 'error');
-                this.value = '';
-                preview.innerHTML = '';
-                preview.classList.remove('show');
-                return;
-            }
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
-                preview.classList.add('show');
-            };
-            reader.readAsDataURL(file);
-        } else {
-            preview.innerHTML = '';
-            preview.classList.remove('show');
-        }
-    });
-}
-
-// =================================
-// BLOG FORM SUBMIT
-// =================================
-const blogForm = document.getElementById('blogForm');
-if (blogForm) {
-    blogForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        console.log('📝 Submitting blog form...');
-        
-        const submitBtn = blogForm.querySelector('button[type="submit"]');
-        const originalText = submitBtn.textContent;
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Saving...';
-        
-        try {
-            const formData = {
-                title: document.getElementById('blogTitle').value,
-                category: document.getElementById('blogCategory').value,
-                author: document.getElementById('blogAuthor').value,
-                date: document.getElementById('blogDate').value,
-                readTime: document.getElementById('blogReadTime').value,
-                featured: document.getElementById('blogFeatured').value,
-                excerpt: document.getElementById('blogExcerpt').value,
-                content: document.getElementById('blogContent').value,
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            };
-            
-            // Only set createdAt for new blogs
-            if (!editingBlogId) {
-                formData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-            }
-            
-            const imageInput = document.getElementById('blogImage');
-            
-            if (imageInput && imageInput.files[0]) {
-                // Convert image to base64
-                const base64Image = await convertImageToBase64(imageInput.files[0]);
-                formData.imageUrl = base64Image;
-            } else if (editingBlogId) {
-                // Keep existing image if editing
-                const existingBlog = blogs.find(b => b.id === editingBlogId);
-                formData.imageUrl = existingBlog?.imageUrl || null;
-            }
-            
-            await saveBlog(formData);
-            
-            submitBtn.disabled = false;
-            submitBtn.textContent = originalText;
-            
-        } catch (error) {
-            console.error('❌ Error submitting form:', error);
-            showNotification('Error saving blog: ' + error.message, 'error');
-            submitBtn.disabled = false;
-            submitBtn.textContent = originalText;
-        }
-    });
-}
-
-// =================================
-// CONVERT IMAGE TO BASE64
-// =================================
-function convertImageToBase64(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        
-        reader.onload = function(e) {
-            console.log('✅ Image converted to base64');
-            resolve(e.target.result);
-        };
-        
-        reader.onerror = function(error) {
-            console.error('❌ Error converting image:', error);
-            reject(new Error('Failed to convert image'));
-        };
-        
-        reader.readAsDataURL(file);
-    });
-}
-
-// =================================
-// SAVE BLOG TO FIRESTORE
-// =================================
-async function saveBlog(blogData) {
-    try {
-        console.log('💾 Saving blog to Firestore:', blogData.title);
-        
-        if (editingBlogId) {
-            // Update existing blog
-            await db.collection('blogs').doc(editingBlogId).update(blogData);
-            console.log('✏️ Updated blog:', editingBlogId);
-            showNotification('Blog updated successfully!', 'success');
-        } else {
-            // Create new blog
-            const docRef = await db.collection('blogs').add(blogData);
-            console.log('➕ Added new blog:', docRef.id);
-            showNotification('Blog added successfully!', 'success');
-        }
-        
-        resetForm();
-        await loadBlogs();
-        
-    } catch (error) {
-        console.error('❌ Error saving blog:', error);
-        throw error;
+    if (editingId) {
+      await db.collection('blogs').doc(editingId).update(data);
+      toast('Blog updated!', 'ok');
+    } else {
+      await db.collection('blogs').add(data);
+      toast('Blog published!', 'ok');
     }
+
+    resetForm();
+    await loadBlogs();
+  } catch (e) {
+    toast('Error: ' + e.message, 'err');
+  } finally {
+    btn.disabled = false;
+    txt.textContent = orig;
+  }
 }
 
-// =================================
-// LOAD BLOGS FROM FIRESTORE
-// =================================
-async function loadBlogs() {
-    console.log('📂 Loading blogs from Firestore...');
-    
-    try {
-        const snapshot = await db.collection('blogs')
-            .orderBy('createdAt', 'desc')
-            .get();
-        
-        blogs = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
-        
-        console.log('✅ Loaded', blogs.length, 'blogs from Firestore');
-        
-        renderBlogTable();
-        
-    } catch (error) {
-        console.error('❌ Error loading blogs:', error);
-        showNotification('Error loading blogs: ' + error.message, 'error');
-        blogs = [];
-        renderBlogTable();
-    }
-}
-
-// =================================
-// RENDER BLOG TABLE
-// =================================
-function renderBlogTable() {
-    const tbody = document.getElementById('blogTableBody');
-    const emptyState = document.getElementById('emptyState');
-    
-    if (!tbody || !emptyState) {
-        console.warn('⚠️ Table elements not found');
-        return;
-    }
-    
-    console.log('🎨 Rendering', blogs.length, 'blogs in table');
-    
-    if (blogs.length === 0) {
-        tbody.innerHTML = '';
-        emptyState.style.display = 'block';
-        return;
-    }
-    
-    emptyState.style.display = 'none';
-    
-    tbody.innerHTML = blogs.map(blog => `
-        <tr>
-            <td>
-                <img src="${blog.imageUrl || 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'60\' height=\'60\'%3E%3Crect fill=\'%23252530\' width=\'60\' height=\'60\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'%237c3aed\' font-family=\'Arial\' font-size=\'24\'%3E📝%3C/text%3E%3C/svg%3E'}" alt="${escapeHtml(blog.title)}" class="blog-thumbnail" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'60\' height=\'60\'%3E%3Crect fill=\'%23252530\' width=\'60\' height=\'60\'/%3E%3C/svg%3E'">
-            </td>
-            <td class="blog-title-cell">${escapeHtml(blog.title)}</td>
-            <td><span class="category-badge">${escapeHtml(blog.category)}</span></td>
-            <td>${escapeHtml(blog.author)}</td>
-            <td>${formatDate(blog.date)}</td>
-            <td>
-                ${blog.featured === 'yes' ? '<span class="featured-badge">★ Featured</span>' : '-'}
-            </td>
-            <td>
-                <div class="action-buttons">
-                    <button class="btn-icon edit" onclick="editBlog('${blog.id}')" title="Edit">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                        </svg>
-                    </button>
-                    <button class="btn-icon delete" onclick="confirmDeleteBlog('${blog.id}')" title="Delete">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                        </svg>
-                    </button>
-                </div>
-            </td>
-        </tr>
-    `).join('');
-}
-
-// =================================
-// EDIT BLOG
-// =================================
-function editBlog(id) {
-    console.log('✏️ Editing blog:', id);
-    
-    const blog = blogs.find(b => b.id === id);
-    if (!blog) {
-        showNotification('Blog not found', 'error');
-        return;
-    }
-    
-    editingBlogId = id;
-    
-    document.getElementById('blogTitle').value = blog.title;
-    document.getElementById('blogCategory').value = blog.category;
-    document.getElementById('blogAuthor').value = blog.author;
-    document.getElementById('blogDate').value = blog.date;
-    document.getElementById('blogReadTime').value = blog.readTime;
-    document.getElementById('blogFeatured').value = blog.featured;
-    document.getElementById('blogExcerpt').value = blog.excerpt;
-    document.getElementById('blogContent').value = blog.content;
-    
-    if (blog.imageUrl) {
-        const preview = document.getElementById('imagePreview');
-        if (preview) {
-            preview.innerHTML = `<img src="${blog.imageUrl}" alt="Preview">`;
-            preview.classList.add('show');
-        }
-    }
-    
-    const formTitle = document.getElementById('formTitle');
-    const submitBtnText = document.getElementById('submitBtnText');
-    const cancelButton = document.getElementById('cancelBtn');
-    
-    if (formTitle) formTitle.textContent = 'Edit Blog Post';
-    if (submitBtnText) submitBtnText.textContent = 'Update Blog Post';
-    if (cancelButton) cancelButton.style.display = 'inline-block';
-    
-    const form = document.getElementById('blogForm');
-    if (form) {
-        form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-}
-
-// =================================
-// DELETE BLOG
-// =================================
-function confirmDeleteBlog(id) {
-    deleteTargetId = id;
-    const modal = document.getElementById('deleteModal');
-    if (modal) modal.classList.add('show');
-}
-
-const confirmDeleteBtn = document.getElementById('confirmDelete');
-if (confirmDeleteBtn) {
-    confirmDeleteBtn.addEventListener('click', async function() {
-        if (deleteTargetId) {
-            console.log('🗑️ Deleting blog:', deleteTargetId);
-            
-            try {
-                await db.collection('blogs').doc(deleteTargetId).delete();
-                
-                console.log('✅ Deleted blog from Firestore');
-                
-                showNotification('Blog deleted successfully!', 'success');
-                await loadBlogs();
-                
-            } catch (error) {
-                console.error('❌ Delete error:', error);
-                showNotification('Error deleting blog: ' + error.message, 'error');
-            }
-            
-            closeDeleteModal();
-        }
-    });
-}
-
-const cancelDeleteBtn = document.getElementById('cancelDelete');
-if (cancelDeleteBtn) {
-    cancelDeleteBtn.addEventListener('click', closeDeleteModal);
-}
-
-const modalCloseBtn = document.querySelector('.modal-close');
-if (modalCloseBtn) {
-    modalCloseBtn.addEventListener('click', closeDeleteModal);
-}
-
-function closeDeleteModal() {
-    const modal = document.getElementById('deleteModal');
-    if (modal) modal.classList.remove('show');
-    deleteTargetId = null;
-}
-
-// =================================
-// CANCEL EDIT
-// =================================
-const cancelBtn = document.getElementById('cancelBtn');
-if (cancelBtn) {
-    cancelBtn.addEventListener('click', resetForm);
-}
+function val(id) { return document.getElementById(id)?.value?.trim() || ''; }
 
 function resetForm() {
-    const form = document.getElementById('blogForm');
-    if (form) form.reset();
-    
-    const preview = document.getElementById('imagePreview');
-    if (preview) {
-        preview.innerHTML = '';
-        preview.classList.remove('show');
-    }
-    
-    // Safely update form elements
-    const formTitle = document.getElementById('formTitle');
-    const submitBtnText = document.getElementById('submitBtnText');
-    const cancelButton = document.getElementById('cancelBtn');
-    
-    if (formTitle) {
-        formTitle.textContent = 'Add New Blog Post';
-    }
-    
-    if (submitBtnText) {
-        submitBtnText.textContent = 'Add Blog Post';
-    }
-    
-    if (cancelButton) {
-        cancelButton.style.display = 'none';
-    }
-    
-    editingBlogId = null;
-    
-    if (datepickerInstance) {
-        datepickerInstance.setDate(new Date());
-    }
+  document.getElementById('blogForm')?.reset();
+  compressedB64 = null; editingId = null;
+
+  const prev = document.getElementById('imgPrev');
+  if (prev) {
+    prev.classList.remove('show');
+    document.getElementById('prevImg').src = '';
+    document.getElementById('prevMeta').innerHTML = '';
+  }
+
+  document.getElementById('formTitle').textContent = 'Add New Blog Post';
+  document.getElementById('submitTxt').textContent  = 'Add Blog Post';
+  document.getElementById('cancelBtn').style.display = 'none';
+
+  dp?.reset();
 }
 
-// =================================
-// SEARCH FUNCTIONALITY
-// =================================
-const searchInput = document.getElementById('searchBlogs');
-if (searchInput) {
-    searchInput.addEventListener('input', function(e) {
-        const searchTerm = e.target.value.toLowerCase();
-        const filteredBlogs = blogs.filter(blog => 
-            blog.title.toLowerCase().includes(searchTerm) ||
-            blog.category.toLowerCase().includes(searchTerm) ||
-            blog.author.toLowerCase().includes(searchTerm) ||
-            blog.excerpt.toLowerCase().includes(searchTerm)
-        );
-        
-        const tbody = document.getElementById('blogTableBody');
-        if (!tbody) return;
-        
-        if (filteredBlogs.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">No blogs found matching your search.</td></tr>';
-            return;
-        }
-        
-        tbody.innerHTML = filteredBlogs.map(blog => `
-            <tr>
-                <td>
-                    <img src="${blog.imageUrl || 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'60\' height=\'60\'%3E%3Crect fill=\'%23252530\' width=\'60\' height=\'60\'/%3E%3C/svg%3E'}" alt="${escapeHtml(blog.title)}" class="blog-thumbnail">
-                </td>
-                <td class="blog-title-cell">${escapeHtml(blog.title)}</td>
-                <td><span class="category-badge">${escapeHtml(blog.category)}</span></td>
-                <td>${escapeHtml(blog.author)}</td>
-                <td>${formatDate(blog.date)}</td>
-                <td>
-                    ${blog.featured === 'yes' ? '<span class="featured-badge">★ Featured</span>' : '-'}
-                </td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn-icon edit" onclick="editBlog('${blog.id}')">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                            </svg>
-                        </button>
-                        <button class="btn-icon delete" onclick="confirmDeleteBlog('${blog.id}')">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                            </svg>
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        `).join('');
+// ============================================
+// LOAD BLOGS
+// ============================================
+async function loadBlogs() {
+  try {
+    const snap = await db.collection('blogs').orderBy('createdAt','desc').get();
+    blogs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderTable(blogs);
+  } catch (e) {
+    toast('Load error: ' + e.message, 'err');
+    blogs = [];
+    renderTable([]);
+  }
+}
+
+// ============================================
+// RENDER TABLE
+// ============================================
+function renderTable(list) {
+  const tbody = document.getElementById('blogTbody');
+  const empty = document.getElementById('emptyState');
+  if (!tbody || !empty) return;
+
+  if (!list.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = list.map(b => {
+    const thumb = b.imageUrl
+      ? `<img class="thumb" src="${b.imageUrl}" alt="" loading="lazy" onerror="this.style.display='none'">`
+      : `<div class="thumb-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>`;
+
+    const feat = b.featured === 'yes'
+      ? `<span class="badge badge-feat"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> Featured</span>`
+      : `<span style="color:var(--t3)">—</span>`;
+
+    return `<tr>
+      <td>${thumb}</td>
+      <td class="ttl-cell" title="${esc(b.title)}">${esc(b.title)}</td>
+      <td><span class="badge badge-cat">${esc(b.category)}</span></td>
+      <td style="color:var(--t2)">${esc(b.author)}</td>
+      <td style="color:var(--t2);white-space:nowrap">${fmtDate(b.date)}</td>
+      <td>${feat}</td>
+      <td>
+        <div class="act-cell">
+          <button class="ibtn edit" onclick="editBlog('${b.id}')" title="Edit post">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+          </button>
+          <button class="ibtn del" onclick="openDelete('${b.id}')" title="Delete post">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+          </button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ============================================
+// EDIT
+// ============================================
+window.editBlog = function(id) {
+  const b = blogs.find(x => x.id === id);
+  if (!b) return toast('Post not found', 'err');
+
+  editingId = id; compressedB64 = null;
+  ['blogTitle','blogCategory','blogAuthor','blogReadTime','blogFeatured','blogExcerpt','blogContent']
+    .forEach(fid => {
+      const el = document.getElementById(fid);
+      const key = fid.replace('blog','').charAt(0).toLowerCase() + fid.replace('blog','').slice(1);
+      const mapped = { Title:'title',Category:'category',Author:'author',ReadTime:'readTime',Featured:'featured',Excerpt:'excerpt',Content:'content' };
+      const k = mapped[fid.replace('blog','')];
+      if (el && b[k] !== undefined) el.value = b[k];
     });
-}
 
-// =================================
-// UTILITY FUNCTIONS
-// =================================
-function formatDate(dateString) {
+  dp?.setStr(b.date);
+
+  const prev = document.getElementById('imgPrev');
+  if (b.imageUrl && prev) {
+    document.getElementById('prevImg').src = b.imageUrl;
+    document.getElementById('prevMeta').innerHTML = '<span style="color:var(--t2)">Existing image</span>';
+    prev.classList.add('show');
+  }
+
+  document.getElementById('formTitle').textContent = 'Edit Blog Post';
+  document.getElementById('submitTxt').textContent  = 'Update Blog Post';
+  document.getElementById('cancelBtn').style.display = 'inline-flex';
+  document.getElementById('blogForm')?.scrollIntoView({ behavior:'smooth', block:'start' });
+};
+
+// ============================================
+// DELETE
+// ============================================
+window.openDelete = function(id) {
+  deleteTarget = id;
+  document.getElementById('deleteModal').classList.add('show');
+};
+
+function bindModal() {
+  document.getElementById('confirmDelete')?.addEventListener('click', async () => {
+    if (!deleteTarget) return;
     try {
-        const date = new Date(dateString);
-        const options = { year: 'numeric', month: 'long', day: 'numeric' };
-        return date.toLocaleDateString('en-US', options);
-    } catch (error) {
-        return dateString;
-    }
+      await db.collection('blogs').doc(deleteTarget).delete();
+      toast('Post deleted', 'ok');
+      closeModal();
+      await loadBlogs();
+    } catch (e) { toast('Delete failed: ' + e.message, 'err'); }
+  });
+  document.getElementById('cancelDelete')?.addEventListener('click', closeModal);
+  document.getElementById('modalClose')?.addEventListener('click', closeModal);
+  document.getElementById('deleteModal')?.addEventListener('click', e => {
+    if (e.target === document.getElementById('deleteModal')) closeModal();
+  });
 }
 
-function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+function closeModal() {
+  document.getElementById('deleteModal').classList.remove('show');
+  deleteTarget = null;
 }
 
-function showNotification(message, type = 'success') {
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 1rem 1.5rem;
-        background: ${type === 'success' ? '#10b981' : '#ef4444'};
-        color: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        z-index: 2000;
-        animation: slideIn 0.3s ease;
-        max-width: 300px;
-        word-wrap: break-word;
-    `;
-    notification.textContent = message;
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease';
-        setTimeout(() => {
-            notification.remove();
-        }, 300);
-    }, 3000);
+// ============================================
+// SEARCH
+// ============================================
+function bindSearch() {
+  document.getElementById('searchBlogs')?.addEventListener('input', e => {
+    const q = e.target.value.toLowerCase().trim();
+    renderTable(!q ? blogs : blogs.filter(b =>
+      [b.title, b.category, b.author, b.excerpt].some(f => f?.toLowerCase().includes(q))
+    ));
+  });
 }
 
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from {
-            transform: translateX(400px);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-    @keyframes slideOut {
-        from {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateX(400px);
-            opacity: 0;
-        }
-    }
-`;
-document.head.appendChild(style);
+// ============================================
+// UTILITIES
+// ============================================
+function fmtDate(s) {
+  if (!s) return '—';
+  try { return new Date(s+'T00:00:00').toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'}); }
+  catch { return s; }
+}
 
-console.log('✅ Admin.js with Firebase loaded successfully');
+function esc(s) {
+  if (!s) return '';
+  const d = document.createElement('div'); d.textContent = s; return d.innerHTML;
+}
+
+// ============================================
+// TOAST
+// ============================================
+function toast(msg, type = 'ok') {
+  const tray = document.getElementById('toastTray');
+  if (!tray) return;
+
+  const icons = {
+    ok:  `<svg class="t-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`,
+    err: `<svg class="t-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`
+  };
+
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `${icons[type]||''}<span>${msg}</span>`;
+  tray.appendChild(el);
+  setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 300); }, 3500);
+}
+
+console.log('✅ ZettaCoreLab admin.js loaded — violet/navy theme');

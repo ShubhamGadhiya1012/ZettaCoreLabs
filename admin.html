@@ -1,256 +1,377 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - ZettaCoreLab</title>
-    <link rel="stylesheet" href="css/admin.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel — ZettaCoreLab</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/zettacore favicon.svg">
+  <link rel="stylesheet" href="css/admin.css">
 </head>
 <body>
-    
-    <!-- Login Section -->
-    <div id="loginSection" class="login-container">
-        <div class="login-box">
-            <div class="login-header">
-                <div class="logo-icon"></div>
-                <h1>Admin Login</h1>
-                <p>ZettaCoreLab Administration</p>
-            </div>
-            <form id="loginForm" class="login-form">
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" name="username" required>
-                </div>
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required>
-                </div>
-                <button type="submit" class="btn-login">Login</button>
-                <div id="loginError" class="error-message"></div>
-            </form>
+
+<!-- ==================== LOGIN ==================== -->
+<div id="loginSection" class="login-wrap">
+  <div class="login-card">
+    <div class="login-head">
+      <div class="logo-gem">
+        <img src="assets/images/zettacore logo.svg" alt="ZettaCoreLab">
+      </div>
+      <h1>Admin Login</h1>
+      <p>ZettaCoreLab Administration</p>
+    </div>
+
+    <form id="loginForm" autocomplete="off">
+      <div class="f-field">
+        <label for="username">Username</label>
+        <div class="i-wrap">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <input type="text" id="username" placeholder="Enter username" required autocomplete="username">
         </div>
-    </div>
-
-    <!-- Admin Panel -->
-    <div id="adminPanel" class="admin-panel" style="display: none;">
-        
-        <!-- Sidebar -->
-        <aside id="sidebar" class="sidebar">
-            <div class="sidebar-header">
-                <div class="logo-icon"></div>
-                <span class="sidebar-title">Admin Panel</span>
-                <button id="closeSidebar" class="close-sidebar">×</button>
-            </div>
-            <nav class="sidebar-nav">
-                <a href="#blog" class="nav-item active" data-section="blog">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
-                    </svg>
-                    <span>Blog Management</span>
-                </a>
-                <a href="#logout" class="nav-item logout" id="logoutBtn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                    </svg>
-                    <span>Logout</span>
-                </a>
-            </nav>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            
-            <!-- Header -->
-            <header class="admin-header">
-                <button id="toggleSidebar" class="toggle-sidebar">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M4 6h16M4 12h16M4 18h16"/>
-                    </svg>
-                </button>
-                <h2 id="pageTitle">Blog Management</h2>
-                <div class="admin-user">
-                    <span>Welcome, ADMIN</span>
-                </div>
-            </header>
-
-            <!-- Blog Section -->
-            <section id="blogSection" class="content-section">
-                
-                <!-- Blog Form -->
-                <div class="content-card">
-                    <div class="card-header">
-                        <h3 id="formTitle">Add New Blog Post</h3>
-                    </div>
-                    <form id="blogForm" class="admin-form" enctype="multipart/form-data">
-                        <input type="hidden" id="blogId" name="blogId">
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="blogTitle">Title *</label>
-                                <input type="text" id="blogTitle" name="blogTitle" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="blogCategory">Category *</label>
-                                <select id="blogCategory" name="blogCategory" required>
-                                    <option value="">Select Category</option>
-                                    <option value="Blockchain">Blockchain</option>
-                                    <option value="Smart Contracts">Smart Contracts</option>
-                                    <option value="Web3">Web3</option>
-                                    <option value="NFT">NFT</option>
-                                    <option value="DeFi">DeFi</option>
-                                    <option value="AI">AI</option>
-                                    <option value="Security">Security</option>
-                                    <option value="Enterprise">Enterprise</option>
-                                    <option value="Tutorial">Tutorial</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="blogAuthor">Author *</label>
-                                <input type="text" id="blogAuthor" name="blogAuthor" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="blogDate">Publish Date *</label>
-                                <div class="custom-datepicker">
-                                    <input type="text" id="blogDate" name="blogDate" placeholder="Select date" readonly required>
-                                  
-                                    <div class="datepicker-dropdown" id="datepickerDropdown">
-                                        <div class="datepicker-header">
-                                            <button type="button" class="datepicker-nav" id="prevMonth">
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <polyline points="15 18 9 12 15 6"></polyline>
-                                                </svg>
-                                            </button>
-                                            <div class="datepicker-title" id="datepickerTitle"></div>
-                                            <button type="button" class="datepicker-nav" id="nextMonth">
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <polyline points="9 18 15 12 9 6"></polyline>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                        <div class="datepicker-weekdays">
-                                            <div>Sun</div>
-                                            <div>Mon</div>
-                                            <div>Tue</div>
-                                            <div>Wed</div>
-                                            <div>Thu</div>
-                                            <div>Fri</div>
-                                            <div>Sat</div>
-                                        </div>
-                                        <div class="datepicker-days" id="datepickerDays"></div>
-                                        <div class="datepicker-footer">
-                                            <button type="button" class="datepicker-today" id="todayBtn">Today</button>
-                                            <button type="button" class="datepicker-clear" id="clearBtn">Clear</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="blogReadTime">Read Time (minutes) *</label>
-                                <input type="number" id="blogReadTime" name="blogReadTime" min="1" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="blogFeatured">Featured Post</label>
-                                <select id="blogFeatured" name="blogFeatured">
-                                    <option value="no">No</option>
-                                    <option value="yes">Yes</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="blogExcerpt">Excerpt/Summary *</label>
-                            <textarea id="blogExcerpt" name="blogExcerpt" rows="3" required></textarea>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="blogContent">Content *</label>
-                            <textarea id="blogContent" name="blogContent" rows="10" required></textarea>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="blogImage">Blog Image</label>
-                            <input type="file" id="blogImage" name="blogImage" accept="image/*">
-                            <div id="imagePreview" class="image-preview"></div>
-                        </div>
-
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">
-                                <span id="submitBtnText">Add Blog Post</span>
-                            </button>
-                            <button type="button" id="cancelBtn" class="btn btn-secondary" style="display: none;">Cancel</button>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- Blog List Table -->
-                <div class="content-card">
-                    <div class="card-header">
-                        <h3>All Blog Posts</h3>
-                        <div class="table-actions">
-                            <input type="text" id="searchBlogs" placeholder="Search blogs..." class="search-input">
-                        </div>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Image</th>
-                                    <th>Title</th>
-                                    <th>Category</th>
-                                    <th>Author</th>
-                                    <th>Date</th>
-                                    <th>Featured</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="blogTableBody">
-                                <!-- Blogs will be loaded here -->
-                            </tbody>
-                        </table>
-                    </div>
-                    <div id="emptyState" class="empty-state">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
-                        </svg>
-                        <p>No blog posts yet. Create your first one!</p>
-                    </div>
-                </div>
-
-            </section>
-
-        </main>
-
-    </div>
-
-    <!-- Delete Confirmation Modal -->
-    <div id="deleteModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Confirm Delete</h3>
-                <button class="modal-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p>Are you sure you want to delete this blog post? This action cannot be undone.</p>
-            </div>
-            <div class="modal-footer">
-                <button id="confirmDelete" class="btn btn-danger">Delete</button>
-                <button id="cancelDelete" class="btn btn-secondary">Cancel</button>
-            </div>
+      </div>
+      <div class="f-field">
+        <label for="password">Password</label>
+        <div class="i-wrap">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+          </svg>
+          <input type="password" id="password" placeholder="Enter password" required autocomplete="current-password">
         </div>
+      </div>
+      <button type="submit" class="btn-signin">Sign In</button>
+      <div id="loginErr" class="login-err"></div>
+    </form>
+  </div>
+</div>
+
+<!-- ==================== ADMIN PANEL ==================== -->
+<div id="adminPanel" class="admin-wrap" style="display:none;">
+
+  <!-- Backdrop -->
+  <div class="sb-back" id="sbBack"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar open" id="sidebar">
+
+    <div class="sb-head">
+      <div class="sb-gem">
+        <img src="assets/images/zettacore logo.svg" alt="ZettaCoreLab">
+      </div>
+      <span class="sb-brand">ZettaCoreLab</span>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
-    
-    <!-- Your Scripts -->
-    <script src="js/firebase-config.js"></script>
-    <script src="js/admin.js"></script>
+    <nav class="sb-nav">
+
+      <a class="sb-item active" id="navBlog" href="#" data-tip="Blog">
+        <svg class="sb-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
+        <span class="sb-lbl">Blog Management</span>
+        <span class="sb-tip">Blog Management</span>
+      </a>
+
+      <div class="sb-div"></div>
+
+    </nav>
+
+    <div class="sb-foot">
+      <!-- Logout -->
+      <a class="sb-item danger" id="logoutBtn" href="#" data-tip="Logout">
+        <svg class="sb-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+          <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        <span class="sb-lbl">Logout</span>
+        <span class="sb-tip">Logout</span>
+      </a>
+
+      <!-- Desktop expand/collapse toggle -->
+      <button class="sb-tog" id="sbToggle" title="Toggle sidebar" style="margin-top:.5rem;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
+    </div>
+
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main shifted" id="mainArea">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <!-- Mobile toggle -->
+      <button class="mob-btn" id="mobMenuBtn" aria-label="Open menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+      <!-- Desktop sidebar toggle -->
+      <button class="desk-btn" id="deskToggle" aria-label="Toggle sidebar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <line x1="9" y1="3" x2="9" y2="21"/>
+        </svg>
+      </button>
+
+      <h2 class="tb-title" id="pageTitle">Blog Management</h2>
+
+      <div class="tb-right">
+        <div class="status-pill">
+          <span class="dot-live"></span>
+          <span>ADMIN</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- Form Card -->
+      <div class="card">
+        <div class="card-top">
+          <div class="card-ttl">
+            <svg class="card-ttl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="16"/>
+              <line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+            <span id="formTitle">Add New Blog Post</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <form id="blogForm" autocomplete="off">
+            <input type="hidden" id="blogId">
+
+            <div class="f-grid2">
+              <div class="f-group">
+                <label for="blogTitle">Title *</label>
+                <input type="text" id="blogTitle" placeholder="Enter blog title" required>
+              </div>
+              <div class="f-group">
+                <label for="blogCategory">Category *</label>
+                <select id="blogCategory" required>
+                  <option value="">Select Category</option>
+                  <option value="Blockchain">Blockchain</option>
+                  <option value="Smart Contracts">Smart Contracts</option>
+                  <option value="Web3">Web3</option>
+                  <option value="NFT">NFT</option>
+                  <option value="DeFi">DeFi</option>
+                  <option value="AI">AI</option>
+                  <option value="Security">Security</option>
+                  <option value="Enterprise">Enterprise</option>
+                  <option value="Tutorial">Tutorial</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="f-grid2">
+              <div class="f-group">
+                <label for="blogAuthor">Author *</label>
+                <input type="text" id="blogAuthor" placeholder="Author name" required>
+              </div>
+              <div class="f-group">
+                <label>Publish Date *</label>
+                <div class="dp-wrap">
+                  <div class="dp-iw">
+                    <input type="text" id="blogDate" placeholder="Select date" readonly required>
+                    <svg class="dp-cal-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="4" width="18" height="18" rx="2"/>
+                      <line x1="16" y1="2" x2="16" y2="6"/>
+                      <line x1="8" y1="2" x2="8" y2="6"/>
+                      <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                  </div>
+                  <div class="dp-pop" id="dpPop">
+                    <div class="dp-hd">
+                      <button type="button" class="dp-arr" id="dpPrev">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                      </button>
+                      <span class="dp-mo" id="dpMo"></span>
+                      <button type="button" class="dp-arr" id="dpNext">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                      </button>
+                    </div>
+                    <div class="dp-wk">
+                      <span>Su</span><span>Mo</span><span>Tu</span>
+                      <span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+                    </div>
+                    <div class="dp-grid" id="dpGrid"></div>
+                    <div class="dp-ft">
+                      <button type="button" class="dp-fbtn dp-td" id="dpToday">Today</button>
+                      <button type="button" class="dp-fbtn dp-clr" id="dpClear">Clear</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="f-grid2">
+              <div class="f-group">
+                <label for="blogReadTime">Read Time (min) *</label>
+                <input type="number" id="blogReadTime" placeholder="e.g. 5" min="1" required>
+              </div>
+              <div class="f-group">
+                <label for="blogFeatured">Featured Post</label>
+                <select id="blogFeatured">
+                  <option value="no">No</option>
+                  <option value="yes">Yes — Featured</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="f-group">
+              <label for="blogExcerpt">Excerpt / Summary *</label>
+              <textarea id="blogExcerpt" rows="3" placeholder="Short description shown in listing…" required></textarea>
+            </div>
+
+            <div class="f-group">
+              <label for="blogContent">Full Content *</label>
+              <textarea id="blogContent" rows="10" placeholder="Write your full blog content here…" required></textarea>
+            </div>
+
+            <div class="f-group">
+              <label>
+                Blog Image
+                <span style="font-size:.72rem;color:var(--t3);text-transform:none;letter-spacing:0;font-weight:400;margin-left:.4rem;">
+                  — any size, auto-compressed to ≤ 500 KB
+                </span>
+              </label>
+              <div class="file-zone" id="fileZone">
+                <input type="file" id="blogImage" accept="image/*">
+                <svg class="fz-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                  <polyline points="17 8 12 3 7 8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                <div class="fz-ttl">Click to upload or drag &amp; drop</div>
+                <div class="fz-hint">PNG, JPG, WEBP — any size accepted, auto-compressed</div>
+              </div>
+              <div class="img-prev" id="imgPrev">
+                <img id="prevImg" src="" alt="Preview">
+                <div class="prev-meta" id="prevMeta"></div>
+              </div>
+            </div>
+
+            <div class="f-actions">
+              <button type="submit" class="btn btn-primary" id="submitBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+                  <polyline points="17 21 17 13 7 13"/>
+                  <polyline points="7 3 7 8 15 8"/>
+                </svg>
+                <span id="submitTxt">Add Blog Post</span>
+              </button>
+              <button type="button" id="cancelBtn" class="btn btn-ghost" style="display:none;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Table Card -->
+      <div class="card">
+        <div class="card-top">
+          <div class="card-ttl">
+            <svg class="card-ttl-ico cyan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>
+            </svg>
+            All Blog Posts
+          </div>
+          <div class="tbar">
+            <div class="srch">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input type="text" id="searchBlogs" class="srch-inp" placeholder="Search posts…">
+            </div>
+          </div>
+        </div>
+        <div class="tbl-scroll">
+          <table class="dtbl">
+            <thead>
+              <tr>
+                <th>Image</th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Author</th>
+                <th>Date</th>
+                <th>Featured</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="blogTbody"></tbody>
+          </table>
+        </div>
+        <div id="emptyState" class="empty" style="display:none;">
+          <div class="empty-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="12" y1="18" x2="12" y2="12"/>
+              <line x1="9" y1="15" x2="15" y2="15"/>
+            </svg>
+          </div>
+          <h4>No blog posts yet</h4>
+          <p>Create your first post using the form above.</p>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /admin-wrap -->
+
+<!-- DELETE MODAL -->
+<div class="modal-bg" id="deleteModal">
+  <div class="modal-box">
+    <div class="modal-hd">
+      <h3>Delete Blog Post</h3>
+      <button class="modal-x" id="modalClose">×</button>
+    </div>
+    <div class="modal-bd">
+      <div class="modal-del-ico">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+          <path d="M10 11v6M14 11v6M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+        </svg>
+      </div>
+      <p>Are you sure you want to permanently delete this blog post? This action <strong style="color:var(--danger)">cannot be undone</strong>.</p>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-ghost" id="cancelDelete">Cancel</button>
+      <button class="btn btn-danger" id="confirmDelete">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;">
+          <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+        </svg>
+        Delete
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST TRAY -->
+<div class="toast-tray" id="toastTray"></div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/admin.js"></script>
 </body>
 </html>
