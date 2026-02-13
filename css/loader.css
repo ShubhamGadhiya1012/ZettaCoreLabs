@@ -1,0 +1,311 @@
+/* =================================
+   BLOCKCHAIN LOADER ANIMATION
+================================= */
+
+:root {
+    --primary-purple: #7c3aed;
+    --primary-purple-dark: #6d28d9;
+    --primary-purple-light: #8b5cf6;
+    --bg-dark: #0a0a0f;
+    --bg-darker: #050508;
+}
+
+/* =================================
+   LOADER OVERLAY
+================================= */
+.blockchain-loader-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(5, 5, 8, 0.98);
+    backdrop-filter: blur(10px);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+
+.blockchain-loader-overlay.fade-out {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* =================================
+   LOADER CONTAINER
+================================= */
+.blockchain-loader-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+}
+
+/* =================================
+   BLOCKCHAIN NETWORK ANIMATION
+================================= */
+.blockchain-network {
+    position: relative;
+    width: 200px;
+    height: 200px;
+}
+
+/* Center Block */
+.block-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--primary-purple), var(--primary-purple-dark));
+    border-radius: 12px;
+    box-shadow: 0 0 30px rgba(124, 58, 237, 0.6);
+    animation: blockPulse 2s ease-in-out infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.block-center::before {
+    content: '';
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    background: var(--bg-dark);
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}
+
+@keyframes blockPulse {
+    0%, 100% {
+        transform: translate(-50%, -50%) scale(1);
+        box-shadow: 0 0 30px rgba(124, 58, 237, 0.6);
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.1);
+        box-shadow: 0 0 50px rgba(124, 58, 237, 0.9);
+    }
+}
+
+/* Orbiting Blocks */
+.block-orbit {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.6), rgba(109, 40, 217, 0.6));
+    border: 2px solid var(--primary-purple);
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.4);
+}
+
+.block-orbit-1 {
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    animation: orbit1 3s linear infinite;
+}
+
+.block-orbit-2 {
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    animation: orbit2 3s linear infinite;
+}
+
+.block-orbit-3 {
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    animation: orbit3 3s linear infinite;
+}
+
+.block-orbit-4 {
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    animation: orbit4 3s linear infinite;
+}
+
+@keyframes orbit1 {
+    0%, 100% { top: 0; left: 50%; transform: translateX(-50%) scale(1); opacity: 1; }
+    25% { top: 0; right: 0; left: auto; transform: translateX(0) scale(0.8); opacity: 0.6; }
+    50% { bottom: 0; top: auto; right: 0; transform: translateX(0) scale(1); opacity: 1; }
+    75% { bottom: 0; left: 50%; right: auto; transform: translateX(-50%) scale(0.8); opacity: 0.6; }
+}
+
+@keyframes orbit2 {
+    0%, 100% { top: 50%; right: 0; transform: translateY(-50%) scale(1); opacity: 1; }
+    25% { bottom: 0; top: auto; right: 0; transform: translateY(0) scale(0.8); opacity: 0.6; }
+    50% { bottom: 0; left: 50%; right: auto; transform: translateX(-50%) scale(1); opacity: 1; }
+    75% { top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8); opacity: 0.6; }
+}
+
+@keyframes orbit3 {
+    0%, 100% { bottom: 0; left: 50%; transform: translateX(-50%) scale(1); opacity: 1; }
+    25% { bottom: 0; left: 0; transform: translateX(0) scale(0.8); opacity: 0.6; }
+    50% { top: 0; bottom: auto; left: 0; transform: translateX(0) scale(1); opacity: 1; }
+    75% { top: 0; left: 50%; transform: translateX(-50%) scale(0.8); opacity: 0.6; }
+}
+
+@keyframes orbit4 {
+    0%, 100% { top: 50%; left: 0; transform: translateY(-50%) scale(1); opacity: 1; }
+    25% { top: 0; left: 0; transform: translateY(0) scale(0.8); opacity: 0.6; }
+    50% { top: 0; right: 0; left: auto; transform: translateY(0) scale(1); opacity: 1; }
+    75% { top: 50%; right: 0; transform: translateY(-50%) scale(0.8); opacity: 0.6; }
+}
+
+/* Connection Lines */
+.connection-line {
+    position: absolute;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        var(--primary-purple) 50%, 
+        transparent 100%);
+    opacity: 0.3;
+    animation: connectionPulse 2s ease-in-out infinite;
+}
+
+.connection-line-1 {
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    transform: translateY(-50%);
+}
+
+.connection-line-2 {
+    top: 0;
+    left: 50%;
+    width: 2px;
+    height: 100%;
+    transform: translateX(-50%);
+    background: linear-gradient(180deg, 
+        transparent 0%, 
+        var(--primary-purple) 50%, 
+        transparent 100%);
+}
+
+@keyframes connectionPulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.7; }
+}
+
+/* =================================
+   LOADING TEXT
+================================= */
+.loading-text {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--primary-purple-light);
+    text-align: center;
+    animation: textPulse 2s ease-in-out infinite;
+}
+
+@keyframes textPulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
+/* Loading Dots */
+.loading-dots {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    justify-content: center;
+}
+
+.loading-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--primary-purple);
+    border-radius: 50%;
+    animation: dotBounce 1.4s ease-in-out infinite;
+}
+
+.loading-dot:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.loading-dot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.loading-dot:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes dotBounce {
+    0%, 80%, 100% {
+        transform: scale(0.8);
+        opacity: 0.5;
+    }
+    40% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+}
+
+/* =================================
+   PROGRESS BAR
+================================= */
+.progress-container {
+    width: 200px;
+    height: 4px;
+    background: rgba(124, 58, 237, 0.2);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 1rem;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, 
+        var(--primary-purple-dark), 
+        var(--primary-purple), 
+        var(--primary-purple-light));
+    background-size: 200% 100%;
+    border-radius: 10px;
+    animation: progressSlide 2s linear infinite;
+    width: 60%;
+}
+
+@keyframes progressSlide {
+    0% {
+        background-position: 0% 0%;
+    }
+    100% {
+        background-position: 200% 0%;
+    }
+}
+
+/* =================================
+   RESPONSIVE
+================================= */
+@media (max-width: 768px) {
+    .blockchain-network {
+        width: 150px;
+        height: 150px;
+    }
+    
+    .block-center {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .block-center::before {
+        width: 25px;
+        height: 25px;
+    }
+    
+    .block-orbit {
+        width: 30px;
+        height: 30px;
+    }
+    
+    .loading-text {
+        font-size: 1rem;
+    }
+}

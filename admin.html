@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - ZettaCoreLab</title>
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+    
+    <!-- Login Section -->
+    <div id="loginSection" class="login-container">
+        <div class="login-box">
+            <div class="login-header">
+                <div class="logo-icon"></div>
+                <h1>Admin Login</h1>
+                <p>ZettaCoreLab Administration</p>
+            </div>
+            <form id="loginForm" class="login-form">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="btn-login">Login</button>
+                <div id="loginError" class="error-message"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="adminPanel" class="admin-panel" style="display: none;">
+        
+        <!-- Sidebar -->
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-icon"></div>
+                <span class="sidebar-title">Admin Panel</span>
+                <button id="closeSidebar" class="close-sidebar">×</button>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#blog" class="nav-item active" data-section="blog">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
+                    </svg>
+                    <span>Blog Management</span>
+                </a>
+                <a href="#logout" class="nav-item logout" id="logoutBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                    </svg>
+                    <span>Logout</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            
+            <!-- Header -->
+            <header class="admin-header">
+                <button id="toggleSidebar" class="toggle-sidebar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
+                <h2 id="pageTitle">Blog Management</h2>
+                <div class="admin-user">
+                    <span>Welcome, ADMIN</span>
+                </div>
+            </header>
+
+            <!-- Blog Section -->
+            <section id="blogSection" class="content-section">
+                
+                <!-- Blog Form -->
+                <div class="content-card">
+                    <div class="card-header">
+                        <h3 id="formTitle">Add New Blog Post</h3>
+                    </div>
+                    <form id="blogForm" class="admin-form" enctype="multipart/form-data">
+                        <input type="hidden" id="blogId" name="blogId">
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="blogTitle">Title *</label>
+                                <input type="text" id="blogTitle" name="blogTitle" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="blogCategory">Category *</label>
+                                <select id="blogCategory" name="blogCategory" required>
+                                    <option value="">Select Category</option>
+                                    <option value="Blockchain">Blockchain</option>
+                                    <option value="Smart Contracts">Smart Contracts</option>
+                                    <option value="Web3">Web3</option>
+                                    <option value="NFT">NFT</option>
+                                    <option value="DeFi">DeFi</option>
+                                    <option value="AI">AI</option>
+                                    <option value="Security">Security</option>
+                                    <option value="Enterprise">Enterprise</option>
+                                    <option value="Tutorial">Tutorial</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="blogAuthor">Author *</label>
+                                <input type="text" id="blogAuthor" name="blogAuthor" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="blogDate">Publish Date *</label>
+                                <div class="custom-datepicker">
+                                    <input type="text" id="blogDate" name="blogDate" placeholder="Select date" readonly required>
+                                  
+                                    <div class="datepicker-dropdown" id="datepickerDropdown">
+                                        <div class="datepicker-header">
+                                            <button type="button" class="datepicker-nav" id="prevMonth">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <polyline points="15 18 9 12 15 6"></polyline>
+                                                </svg>
+                                            </button>
+                                            <div class="datepicker-title" id="datepickerTitle"></div>
+                                            <button type="button" class="datepicker-nav" id="nextMonth">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <polyline points="9 18 15 12 9 6"></polyline>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="datepicker-weekdays">
+                                            <div>Sun</div>
+                                            <div>Mon</div>
+                                            <div>Tue</div>
+                                            <div>Wed</div>
+                                            <div>Thu</div>
+                                            <div>Fri</div>
+                                            <div>Sat</div>
+                                        </div>
+                                        <div class="datepicker-days" id="datepickerDays"></div>
+                                        <div class="datepicker-footer">
+                                            <button type="button" class="datepicker-today" id="todayBtn">Today</button>
+                                            <button type="button" class="datepicker-clear" id="clearBtn">Clear</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="blogReadTime">Read Time (minutes) *</label>
+                                <input type="number" id="blogReadTime" name="blogReadTime" min="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="blogFeatured">Featured Post</label>
+                                <select id="blogFeatured" name="blogFeatured">
+                                    <option value="no">No</option>
+                                    <option value="yes">Yes</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="blogExcerpt">Excerpt/Summary *</label>
+                            <textarea id="blogExcerpt" name="blogExcerpt" rows="3" required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="blogContent">Content *</label>
+                            <textarea id="blogContent" name="blogContent" rows="10" required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="blogImage">Blog Image</label>
+                            <input type="file" id="blogImage" name="blogImage" accept="image/*">
+                            <div id="imagePreview" class="image-preview"></div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                <span id="submitBtnText">Add Blog Post</span>
+                            </button>
+                            <button type="button" id="cancelBtn" class="btn btn-secondary" style="display: none;">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Blog List Table -->
+                <div class="content-card">
+                    <div class="card-header">
+                        <h3>All Blog Posts</h3>
+                        <div class="table-actions">
+                            <input type="text" id="searchBlogs" placeholder="Search blogs..." class="search-input">
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Image</th>
+                                    <th>Title</th>
+                                    <th>Category</th>
+                                    <th>Author</th>
+                                    <th>Date</th>
+                                    <th>Featured</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="blogTableBody">
+                                <!-- Blogs will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="emptyState" class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
+                        </svg>
+                        <p>No blog posts yet. Create your first one!</p>
+                    </div>
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Confirm Delete</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this blog post? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button id="confirmDelete" class="btn btn-danger">Delete</button>
+                <button id="cancelDelete" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+    
+    <!-- Your Scripts -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>
