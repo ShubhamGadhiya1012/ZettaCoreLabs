@@ -19,14 +19,12 @@
       <h1>Admin Login</h1>
       <p>ZettaCoreLab Administration</p>
     </div>
-
     <form id="loginForm" autocomplete="off">
       <div class="f-field">
         <label for="username">Username</label>
         <div class="i-wrap">
           <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
-            <circle cx="12" cy="7" r="4"/>
+            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
           </svg>
           <input type="text" id="username" placeholder="Enter username" required autocomplete="username">
         </div>
@@ -49,12 +47,10 @@
 <!-- ==================== ADMIN PANEL ==================== -->
 <div id="adminPanel" class="admin-wrap" style="display:none;">
 
-  <!-- Backdrop -->
   <div class="sb-back" id="sbBack"></div>
 
   <!-- SIDEBAR -->
   <aside class="sidebar open" id="sidebar">
-
     <div class="sb-head">
       <div class="sb-gem">
         <img src="assets/images/zettacore logo.svg" alt="ZettaCoreLab">
@@ -63,43 +59,59 @@
     </div>
 
     <nav class="sb-nav">
-
-      <a class="sb-item active" id="navBlog" href="#" data-tip="Blog">
+      <!-- Blog -->
+      <span class="sb-section-label">Content</span>
+      <a class="sb-item active" id="navBlog" href="#" data-section="blogSection" data-tip="Blog">
         <svg class="sb-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
           <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
           <polyline points="14 2 14 8 20 8"/>
-          <line x1="16" y1="13" x2="8" y2="13"/>
-          <line x1="16" y1="17" x2="8" y2="17"/>
+          <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
           <polyline points="10 9 9 9 8 9"/>
         </svg>
         <span class="sb-lbl">Blog Management</span>
         <span class="sb-tip">Blog Management</span>
       </a>
 
+      <!-- Projects -->
+      <a class="sb-item" id="navProject" href="#" data-section="projectSection" data-tip="Projects">
+        <svg class="sb-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+          <rect x="2" y="3" width="20" height="14" rx="2"/>
+          <line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+        </svg>
+        <span class="sb-lbl">Project Master</span>
+        <span class="sb-tip">Project Master</span>
+      </a>
+
       <div class="sb-div"></div>
 
+      <!-- Masters -->
+      <span class="sb-section-label">Masters</span>
+      <a class="sb-item" id="navTechMaster" href="#" data-section="techMasterSection" data-tip="Technology">
+        <svg class="sb-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+          <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+        </svg>
+        <span class="sb-lbl">Technology Master</span>
+        <span class="sb-tip">Technology Master</span>
+      </a>
+
+      <div class="sb-div"></div>
     </nav>
 
     <div class="sb-foot">
-      <!-- Logout -->
       <a class="sb-item danger" id="logoutBtn" href="#" data-tip="Logout">
         <svg class="sb-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
           <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
-          <polyline points="16 17 21 12 16 7"/>
-          <line x1="21" y1="12" x2="9" y2="12"/>
+          <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
         </svg>
         <span class="sb-lbl">Logout</span>
         <span class="sb-tip">Logout</span>
       </a>
-
-      <!-- Desktop expand/collapse toggle -->
       <button class="sb-tog" id="sbToggle" title="Toggle sidebar" style="margin-top:.5rem;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="9 18 15 12 9 6"/>
         </svg>
       </button>
     </div>
-
   </aside>
 
   <!-- MAIN -->
@@ -107,24 +119,17 @@
 
     <!-- TOPBAR -->
     <header class="topbar">
-      <!-- Mobile toggle -->
       <button class="mob-btn" id="mobMenuBtn" aria-label="Open menu">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="3" y1="6" x2="21" y2="6"/>
-          <line x1="3" y1="12" x2="21" y2="12"/>
-          <line x1="3" y1="18" x2="21" y2="18"/>
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
         </svg>
       </button>
-      <!-- Desktop sidebar toggle -->
       <button class="desk-btn" id="deskToggle" aria-label="Toggle sidebar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="3" width="18" height="18" rx="2"/>
-          <line x1="9" y1="3" x2="9" y2="21"/>
+          <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/>
         </svg>
       </button>
-
       <h2 class="tb-title" id="pageTitle">Blog Management</h2>
-
       <div class="tb-right">
         <div class="status-pill">
           <span class="dot-live"></span>
@@ -136,198 +141,430 @@
     <!-- CONTENT -->
     <div class="content">
 
-      <!-- Form Card -->
-      <div class="card">
-        <div class="card-top">
-          <div class="card-ttl">
-            <svg class="card-ttl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="12" y1="8" x2="12" y2="16"/>
-              <line x1="8" y1="12" x2="16" y2="12"/>
-            </svg>
-            <span id="formTitle">Add New Blog Post</span>
-          </div>
-        </div>
-        <div class="card-body">
-          <form id="blogForm" autocomplete="off">
-            <input type="hidden" id="blogId">
+      <!-- ==================== BLOG SECTION ==================== -->
+      <div id="blogSection" class="page-section active">
 
-            <div class="f-grid2">
-              <div class="f-group">
-                <label for="blogTitle">Title *</label>
-                <input type="text" id="blogTitle" placeholder="Enter blog title" required>
-              </div>
-              <div class="f-group">
-                <label for="blogCategory">Category *</label>
-                <select id="blogCategory" required>
-                  <option value="">Select Category</option>
-                  <option value="Blockchain">Blockchain</option>
-                  <option value="Smart Contracts">Smart Contracts</option>
-                  <option value="Web3">Web3</option>
-                  <option value="NFT">NFT</option>
-                  <option value="DeFi">DeFi</option>
-                  <option value="AI">AI</option>
-                  <option value="Security">Security</option>
-                  <option value="Enterprise">Enterprise</option>
-                  <option value="Tutorial">Tutorial</option>
-                </select>
-              </div>
+        <!-- Blog Form Card -->
+        <div class="card">
+          <div class="card-top">
+            <div class="card-ttl">
+              <svg class="card-ttl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+              </svg>
+              <span id="formTitle">Add New Blog Post</span>
             </div>
-
-            <div class="f-grid2">
-              <div class="f-group">
-                <label for="blogAuthor">Author *</label>
-                <input type="text" id="blogAuthor" placeholder="Author name" required>
+          </div>
+          <div class="card-body">
+            <form id="blogForm" autocomplete="off">
+              <input type="hidden" id="blogId">
+              <div class="f-grid2">
+                <div class="f-group">
+                  <label for="blogTitle">Title *</label>
+                  <input type="text" id="blogTitle" placeholder="Enter blog title" required>
+                </div>
+                <div class="f-group">
+                  <label for="blogCategory">Category *</label>
+                  <select id="blogCategory" required>
+                    <option value="">Select Category</option>
+                    <option value="Blockchain">Blockchain</option>
+                    <option value="Smart Contracts">Smart Contracts</option>
+                    <option value="Web3">Web3</option>
+                    <option value="NFT">NFT</option>
+                    <option value="DeFi">DeFi</option>
+                    <option value="AI">AI</option>
+                    <option value="Security">Security</option>
+                    <option value="Enterprise">Enterprise</option>
+                    <option value="Tutorial">Tutorial</option>
+                  </select>
+                </div>
               </div>
-              <div class="f-group">
-                <label>Publish Date *</label>
-                <div class="dp-wrap">
-                  <div class="dp-iw">
-                    <input type="text" id="blogDate" placeholder="Select date" readonly required>
-                    <svg class="dp-cal-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <rect x="3" y="4" width="18" height="18" rx="2"/>
-                      <line x1="16" y1="2" x2="16" y2="6"/>
-                      <line x1="8" y1="2" x2="8" y2="6"/>
-                      <line x1="3" y1="10" x2="21" y2="10"/>
-                    </svg>
-                  </div>
-                  <div class="dp-pop" id="dpPop">
-                    <div class="dp-hd">
-                      <button type="button" class="dp-arr" id="dpPrev">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-                      </button>
-                      <span class="dp-mo" id="dpMo"></span>
-                      <button type="button" class="dp-arr" id="dpNext">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-                      </button>
+              <div class="f-grid2">
+                <div class="f-group">
+                  <label for="blogAuthor">Author *</label>
+                  <input type="text" id="blogAuthor" placeholder="Author name" required>
+                </div>
+                <div class="f-group">
+                  <label>Publish Date *</label>
+                  <div class="dp-wrap">
+                    <div class="dp-iw">
+                      <input type="text" id="blogDate" placeholder="Select date" readonly required>
+                      <svg class="dp-cal-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                      </svg>
                     </div>
-                    <div class="dp-wk">
-                      <span>Su</span><span>Mo</span><span>Tu</span>
-                      <span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
-                    </div>
-                    <div class="dp-grid" id="dpGrid"></div>
-                    <div class="dp-ft">
-                      <button type="button" class="dp-fbtn dp-td" id="dpToday">Today</button>
-                      <button type="button" class="dp-fbtn dp-clr" id="dpClear">Clear</button>
+                    <div class="dp-pop" id="dpPop">
+                      <div class="dp-hd">
+                        <button type="button" class="dp-arr" id="dpPrev">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                        </button>
+                        <span class="dp-mo" id="dpMo"></span>
+                        <button type="button" class="dp-arr" id="dpNext">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                        </button>
+                      </div>
+                      <div class="dp-wk">
+                        <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+                      </div>
+                      <div class="dp-grid" id="dpGrid"></div>
+                      <div class="dp-ft">
+                        <button type="button" class="dp-fbtn dp-td" id="dpToday">Today</button>
+                        <button type="button" class="dp-fbtn dp-clr" id="dpClear">Clear</button>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-
-            <div class="f-grid2">
-              <div class="f-group">
-                <label for="blogReadTime">Read Time (min) *</label>
-                <input type="number" id="blogReadTime" placeholder="e.g. 5" min="1" required>
+              <div class="f-grid2">
+                <div class="f-group">
+                  <label for="blogReadTime">Read Time (min) *</label>
+                  <input type="number" id="blogReadTime" placeholder="e.g. 5" min="1" required>
+                </div>
+                <div class="f-group">
+                  <label for="blogFeatured">Featured Post</label>
+                  <select id="blogFeatured">
+                    <option value="no">No</option>
+                    <option value="yes">Yes — Featured</option>
+                  </select>
+                </div>
               </div>
               <div class="f-group">
-                <label for="blogFeatured">Featured Post</label>
-                <select id="blogFeatured">
-                  <option value="no">No</option>
-                  <option value="yes">Yes — Featured</option>
-                </select>
+                <label for="blogExcerpt">Excerpt / Summary *</label>
+                <textarea id="blogExcerpt" rows="3" placeholder="Short description…" required></textarea>
               </div>
-            </div>
-
-            <div class="f-group">
-              <label for="blogExcerpt">Excerpt / Summary *</label>
-              <textarea id="blogExcerpt" rows="3" placeholder="Short description shown in listing…" required></textarea>
-            </div>
-
-            <div class="f-group">
-              <label for="blogContent">Full Content *</label>
-              <textarea id="blogContent" rows="10" placeholder="Write your full blog content here…" required></textarea>
-            </div>
-
-            <div class="f-group">
-              <label>
-                Blog Image
-                <span style="font-size:.72rem;color:var(--t3);text-transform:none;letter-spacing:0;font-weight:400;margin-left:.4rem;">
-                  — any size, auto-compressed to ≤ 500 KB
-                </span>
-              </label>
-              <div class="file-zone" id="fileZone">
-                <input type="file" id="blogImage" accept="image/*">
-                <svg class="fz-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-                  <polyline points="17 8 12 3 7 8"/>
-                  <line x1="12" y1="3" x2="12" y2="15"/>
-                </svg>
-                <div class="fz-ttl">Click to upload or drag &amp; drop</div>
-                <div class="fz-hint">PNG, JPG, WEBP — any size accepted, auto-compressed</div>
+              <div class="f-group">
+                <label for="blogContent">Full Content *</label>
+                <textarea id="blogContent" rows="10" placeholder="Write your full blog content here…" required></textarea>
               </div>
-              <div class="img-prev" id="imgPrev">
-                <img id="prevImg" src="" alt="Preview">
-                <div class="prev-meta" id="prevMeta"></div>
+              <div class="f-group">
+                <label>Blog Image <span style="font-size:.72rem;color:var(--t3);text-transform:none;letter-spacing:0;font-weight:400;margin-left:.4rem;">— auto-compressed to ≤ 500 KB</span></label>
+                <div class="file-zone" id="fileZone">
+                  <input type="file" id="blogImage" accept="image/*">
+                  <svg class="fz-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                  </svg>
+                  <div class="fz-ttl">Click to upload or drag &amp; drop</div>
+                  <div class="fz-hint">PNG, JPG, WEBP — any size accepted, auto-compressed</div>
+                </div>
+                <div class="img-prev" id="imgPrev">
+                  <img id="prevImg" src="" alt="Preview">
+                  <div class="prev-meta" id="prevMeta"></div>
+                </div>
               </div>
-            </div>
+              <div class="f-actions">
+                <button type="submit" class="btn btn-primary" id="submitBtn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+                    <polyline points="17 21 17 13 7 13"/><polyline points="7 3 7 8 15 8"/>
+                  </svg>
+                  <span id="submitTxt">Add Blog Post</span>
+                </button>
+                <button type="button" id="cancelBtn" class="btn btn-ghost" style="display:none;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
 
-            <div class="f-actions">
-              <button type="submit" class="btn btn-primary" id="submitBtn">
+        <!-- Blog Table Card -->
+        <div class="card">
+          <div class="card-top">
+            <div class="card-ttl">
+              <svg class="card-ttl-ico cyan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>
+              </svg>
+              All Blog Posts
+            </div>
+            <div class="tbar">
+              <div class="srch">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
-                  <polyline points="17 21 17 13 7 13"/>
-                  <polyline points="7 3 7 8 15 8"/>
+                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
                 </svg>
-                <span id="submitTxt">Add Blog Post</span>
-              </button>
-              <button type="button" id="cancelBtn" class="btn btn-ghost" style="display:none;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <line x1="18" y1="6" x2="6" y2="18"/>
-                  <line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
-                Cancel
-              </button>
+                <input type="text" id="searchBlogs" class="srch-inp" placeholder="Search posts…">
+              </div>
             </div>
-          </form>
+          </div>
+          <div class="tbl-scroll">
+            <table class="dtbl">
+              <thead>
+                <tr>
+                  <th>Image</th><th>Title</th><th>Category</th>
+                  <th>Author</th><th>Date</th><th>Featured</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="blogTbody"></tbody>
+            </table>
+          </div>
+          <div id="emptyBlogState" class="empty" style="display:none;">
+            <div class="empty-ico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
+              </svg>
+            </div>
+            <h4>No blog posts yet</h4>
+            <p>Create your first post using the form above.</p>
+          </div>
         </div>
       </div>
 
-      <!-- Table Card -->
-      <div class="card">
-        <div class="card-top">
-          <div class="card-ttl">
-            <svg class="card-ttl-ico cyan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>
-            </svg>
-            All Blog Posts
-          </div>
-          <div class="tbar">
-            <div class="srch">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      <!-- ==================== TECHNOLOGY MASTER SECTION ==================== -->
+      <div id="techMasterSection" class="page-section">
+
+        <!-- Add Tech Card -->
+        <div class="card">
+          <div class="card-top">
+            <div class="card-ttl">
+              <svg class="card-ttl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
               </svg>
-              <input type="text" id="searchBlogs" class="srch-inp" placeholder="Search posts…">
+              Add Technology
             </div>
           </div>
-        </div>
-        <div class="tbl-scroll">
-          <table class="dtbl">
-            <thead>
-              <tr>
-                <th>Image</th>
-                <th>Title</th>
-                <th>Category</th>
-                <th>Author</th>
-                <th>Date</th>
-                <th>Featured</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="blogTbody"></tbody>
-          </table>
-        </div>
-        <div id="emptyState" class="empty" style="display:none;">
-          <div class="empty-ico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
-              <line x1="12" y1="18" x2="12" y2="12"/>
-              <line x1="9" y1="15" x2="15" y2="15"/>
-            </svg>
+          <div class="card-body">
+            <form id="techForm" autocomplete="off">
+              <div class="f-grid2">
+                <div class="f-group">
+                  <label for="techName">Technology Name *</label>
+                  <input type="text" id="techName" placeholder="e.g. Ethereum, Solana, Rust…" required>
+                </div>
+                <div class="f-group">
+                  <label for="techCategory">Category</label>
+                  <select id="techCategory">
+                    <option value="Blockchain">Blockchain</option>
+                    <option value="Language">Language</option>
+                    <option value="Framework">Framework</option>
+                    <option value="Protocol">Protocol</option>
+                    <option value="Tool">Tool</option>
+                    <option value="Storage">Storage</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+              <div class="f-actions">
+                <button type="submit" class="btn btn-primary" id="techSubmitBtn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+                  </svg>
+                  <span id="techSubmitTxt">Add Technology</span>
+                </button>
+              </div>
+            </form>
           </div>
-          <h4>No blog posts yet</h4>
-          <p>Create your first post using the form above.</p>
+        </div>
+
+        <!-- Tech List Card -->
+        <div class="card">
+          <div class="card-top">
+            <div class="card-ttl">
+              <svg class="card-ttl-ico cyan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+              </svg>
+              Technology List
+            </div>
+            <div class="tbar">
+              <div class="srch">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                <input type="text" id="searchTech" class="srch-inp" placeholder="Search technologies…">
+              </div>
+            </div>
+          </div>
+          <div class="tbl-scroll">
+            <table class="dtbl">
+              <thead>
+                <tr>
+                  <th>Technology Name</th><th>Category</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="techTbody"></tbody>
+            </table>
+          </div>
+          <div id="emptyTechState" class="empty" style="display:none;">
+            <div class="empty-ico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+              </svg>
+            </div>
+            <h4>No technologies yet</h4>
+            <p>Add your first technology above.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== PROJECT MASTER SECTION ==================== -->
+      <div id="projectSection" class="page-section">
+
+        <!-- Project Form Card -->
+        <div class="card">
+          <div class="card-top">
+            <div class="card-ttl">
+              <svg class="card-ttl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+              </svg>
+              <span id="projectFormTitle">Add New Project</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <form id="projectForm" autocomplete="off">
+              <div class="f-grid2">
+                <div class="f-group">
+                  <label for="projectName">Project Name *</label>
+                  <input type="text" id="projectName" placeholder="Enter project name" required>
+                </div>
+                <div class="f-group">
+                  <label for="projectCategory">Category *</label>
+                  <select id="projectCategory" required>
+                    <option value="">Select Category</option>
+                    <option value="defi">DeFi</option>
+                    <option value="nft">NFT</option>
+                    <option value="enterprise">Enterprise</option>
+                    <option value="web3">Web3</option>
+                    <option value="ai">AI + Blockchain</option>
+                    <option value="security">Security</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="f-group">
+                <label for="projectDescription">Short Description *</label>
+                <textarea id="projectDescription" rows="3" placeholder="Brief project overview shown in cards…" required></textarea>
+              </div>
+
+              <div class="f-group">
+                <label for="projectDetails">Full Project Details *</label>
+                <textarea id="projectDetails" rows="8" placeholder="Detailed description shown in popup view…" required></textarea>
+              </div>
+
+              <!-- Technologies multi-select -->
+              <div class="f-group" style="position:relative;">
+                <label>Technologies Used</label>
+                <div class="tags-input-wrap" id="techTagsWrap" onclick="document.getElementById('techTagsInput').focus()">
+                  <div id="selectedTechTags"></div>
+                  <input type="text" id="techTagsInput" class="tags-input-inner" placeholder="Type or select technologies…" autocomplete="off">
+                </div>
+                <div class="tech-dropdown" id="techDropdown"></div>
+              </div>
+
+              <!-- Stats -->
+              <div class="f-grid2">
+                <div class="f-group">
+                  <label for="projectStat1Label">Stat 1 Label</label>
+                  <input type="text" id="projectStat1Label" placeholder="e.g. Total Value Locked">
+                </div>
+                <div class="f-group">
+                  <label for="projectStat1Value">Stat 1 Value</label>
+                  <input type="text" id="projectStat1Value" placeholder="e.g. $50M+">
+                </div>
+              </div>
+              <div class="f-grid2">
+                <div class="f-group">
+                  <label for="projectStat2Label">Stat 2 Label</label>
+                  <input type="text" id="projectStat2Label" placeholder="e.g. Active Users">
+                </div>
+                <div class="f-group">
+                  <label for="projectStat2Value">Stat 2 Value</label>
+                  <input type="text" id="projectStat2Value" placeholder="e.g. 100K+">
+                </div>
+              </div>
+
+              <div class="f-grid2">
+                <div class="f-group">
+                  <label for="projectYear">Year *</label>
+                  <input type="number" id="projectYear" placeholder="e.g. 2024" min="2000" max="2099" required>
+                </div>
+                <div class="f-group">
+                  <label for="projectFeatured">Featured</label>
+                  <select id="projectFeatured">
+                    <option value="no">No</option>
+                    <option value="yes">Yes — Featured</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="f-group">
+                <label>Project Image <span style="font-size:.72rem;color:var(--t3);text-transform:none;letter-spacing:0;font-weight:400;margin-left:.4rem;">— auto-compressed to ≤ 500 KB</span></label>
+                <div class="file-zone" id="projFileZone">
+                  <input type="file" id="projectImage" accept="image/*">
+                  <svg class="fz-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                  </svg>
+                  <div class="fz-ttl">Click to upload or drag &amp; drop</div>
+                  <div class="fz-hint">PNG, JPG, WEBP — any size accepted, auto-compressed</div>
+                </div>
+                <div class="img-prev" id="projImgPrev">
+                  <img id="projPrevImg" src="" alt="Preview">
+                  <div class="prev-meta" id="projPrevMeta"></div>
+                </div>
+              </div>
+
+              <div class="f-actions">
+                <button type="submit" class="btn btn-primary" id="projectSubmitBtn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+                    <polyline points="17 21 17 13 7 13"/><polyline points="7 3 7 8 15 8"/>
+                  </svg>
+                  <span id="projectSubmitTxt">Add Project</span>
+                </button>
+                <button type="button" id="projectCancelBtn" class="btn btn-ghost" style="display:none;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Project Table Card -->
+        <div class="card">
+          <div class="card-top">
+            <div class="card-ttl">
+              <svg class="card-ttl-ico cyan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="3" width="20" height="14" rx="2"/>
+                <line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+              </svg>
+              All Projects
+            </div>
+            <div class="tbar">
+              <div class="srch">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                <input type="text" id="searchProjects" class="srch-inp" placeholder="Search projects…">
+              </div>
+            </div>
+          </div>
+          <div class="tbl-scroll">
+            <table class="dtbl">
+              <thead>
+                <tr>
+                  <th>Image</th><th>Project Name</th><th>Category</th>
+                  <th>Technologies</th><th>Year</th><th>Featured</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="projectTbody"></tbody>
+            </table>
+          </div>
+          <div id="emptyProjectState" class="empty" style="display:none;">
+            <div class="empty-ico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="2" y="3" width="20" height="14" rx="2"/>
+                <line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+              </svg>
+            </div>
+            <h4>No projects yet</h4>
+            <p>Create your first project using the form above.</p>
+          </div>
         </div>
       </div>
 
@@ -335,11 +572,11 @@
   </div><!-- /main -->
 </div><!-- /admin-wrap -->
 
-<!-- DELETE MODAL -->
+<!-- DELETE MODAL (shared) -->
 <div class="modal-bg" id="deleteModal">
   <div class="modal-box">
     <div class="modal-hd">
-      <h3>Delete Blog Post</h3>
+      <h3 id="deleteModalTitle">Confirm Delete</h3>
       <button class="modal-x" id="modalClose">×</button>
     </div>
     <div class="modal-bd">
@@ -350,7 +587,7 @@
           <path d="M10 11v6M14 11v6M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
         </svg>
       </div>
-      <p>Are you sure you want to permanently delete this blog post? This action <strong style="color:var(--danger)">cannot be undone</strong>.</p>
+      <p>Are you sure you want to permanently delete this item? This action <strong style="color:var(--danger)">cannot be undone</strong>.</p>
     </div>
     <div class="modal-ft">
       <button class="btn btn-ghost" id="cancelDelete">Cancel</button>

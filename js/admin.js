@@ -1,35 +1,33 @@
 // ============================================
 // ZETTACORELAB ADMIN — admin.js
-// Deep Navy + Violet Theme
-// Image Compression · Icon Rail Sidebar · Datepicker
+// Blog · Technology Master · Project Master
 // ============================================
-
 'use strict';
 
-// ---- Auth ----
 const ADMIN_USER = 'ADMIN';
 const ADMIN_PASS = 'Admin@123';
 
 // ---- State ----
-let blogs          = [];
-let editingId      = null;
-let deleteTarget   = null;
-let dp             = null;
-let sbExpanded     = true;
-let compressedB64  = null;    // result of compressImage()
-let formBound      = false;   // prevent duplicate listeners
+let blogs            = [];
+let techList         = [];
+let projects         = [];
+let editingBlogId    = null;
+let editingTechId    = null;
+let editingProjectId = null;
+let deleteTarget     = null;
+let deleteType       = null; // 'blog' | 'tech' | 'project'
+let dp               = null;
+let sbExpanded       = true;
+let compressedB64Blog    = null;
+let compressedB64Project = null;
+let formBound        = false;
+let selectedTechs    = []; // for project tech multi-select
 
 // ============================================
-// IMAGE COMPRESSION
-// Target ≤ 500 KB — accepts any size
-// Two-phase: quality reduction → dimension scaling
+// IMAGE COMPRESSION (≤ 500 KB)
 // ============================================
-const LIMIT = 500 * 1024;   // 500 KB in bytes
+const LIMIT = 500 * 1024;
 
-/**
- * @param {File} file
- * @returns {Promise<{base64:string, origKB:number, finalKB:number, compressed:boolean}>}
- */
 function compressImage(file) {
   return new Promise((resolve, reject) => {
     const fr = new FileReader();
@@ -38,36 +36,27 @@ function compressImage(file) {
       img.onerror = () => reject(new Error('Cannot load image'));
       img.onload = () => {
         const origKB = Math.round(file.size / 1024);
-
-        // Already within limit → return as-is
         if (file.size <= LIMIT) {
           resolve({ base64: e.target.result, origKB, finalKB: origKB, compressed: false });
           return;
         }
-
-        // Start dimensions — cap at 1920px
         let w = img.width, h = img.height;
         const maxDim = 1920;
         if (w > maxDim || h > maxDim) {
           const r = Math.min(maxDim / w, maxDim / h);
           w = Math.round(w * r); h = Math.round(h * r);
         }
-
         const canvas = document.createElement('canvas');
-        const ctx    = canvas.getContext('2d');
-
+        const ctx = canvas.getContext('2d');
         function tryEncode(cw, ch, q) {
           canvas.width = cw; canvas.height = ch;
           ctx.clearRect(0, 0, cw, ch);
           ctx.drawImage(img, 0, 0, cw, ch);
           const data64 = canvas.toDataURL('image/jpeg', q);
-          // Estimate real bytes from base64 length
           const header = 'data:image/jpeg;base64,'.length;
-          const bytes  = Math.round((data64.length - header) * 0.75);
+          const bytes = Math.round((data64.length - header) * 0.75);
           return { data64, bytes };
         }
-
-        // Phase 1 — reduce quality 0.85 → 0.10
         let quality = 0.85;
         let best = null, bestKB = origKB;
         for (let i = 0; i < 9 && quality >= 0.10; i++, quality = +(quality - 0.1).toFixed(2)) {
@@ -75,8 +64,6 @@ function compressImage(file) {
           best = data64; bestKB = Math.round(bytes / 1024);
           if (bytes <= LIMIT) break;
         }
-
-        // Phase 2 — scale down dimensions if still too large
         if (bestKB > Math.round(LIMIT / 1024)) {
           let scale = 0.85;
           while (scale >= 0.25) {
@@ -87,7 +74,6 @@ function compressImage(file) {
             scale = +(scale - 0.10).toFixed(2);
           }
         }
-
         resolve({ base64: best, origKB, finalKB: bestKB, compressed: true });
       };
       img.src = e.target.result;
@@ -102,65 +88,44 @@ function compressImage(file) {
 // ============================================
 class Datepicker {
   constructor() {
-    this.input    = document.getElementById('blogDate');
-    this.pop      = document.getElementById('dpPop');
-    this.moEl     = document.getElementById('dpMo');
-    this.gridEl   = document.getElementById('dpGrid');
-    this.current  = new Date();
+    this.input = document.getElementById('blogDate');
+    this.pop = document.getElementById('dpPop');
+    this.moEl = document.getElementById('dpMo');
+    this.gridEl = document.getElementById('dpGrid');
+    this.current = new Date();
     this.selected = null;
     if (!this.input || !this.pop) return;
     this._bind();
     this.pick(new Date());
   }
-
   _bind() {
     this.input.addEventListener('click', e => { e.stopPropagation(); this.toggle(); });
     document.getElementById('dpPrev')?.addEventListener('click', () => { this.current.setMonth(this.current.getMonth() - 1); this.render(); });
     document.getElementById('dpNext')?.addEventListener('click', () => { this.current.setMonth(this.current.getMonth() + 1); this.render(); });
     document.getElementById('dpToday')?.addEventListener('click', () => { this.pick(new Date()); this.hide(); });
     document.getElementById('dpClear')?.addEventListener('click', () => { this.selected = null; this.input.value = ''; this.hide(); });
-    document.addEventListener('click', e => {
-      if (!this.pop.contains(e.target) && !this.input.contains(e.target)) this.hide();
-    });
+    document.addEventListener('click', e => { if (!this.pop.contains(e.target) && !this.input.contains(e.target)) this.hide(); });
   }
-
   toggle() { this.pop.classList.toggle('show'); if (this.isOpen()) this.render(); }
-  hide()   { this.pop.classList.remove('show'); }
+  hide() { this.pop.classList.remove('show'); }
   isOpen() { return this.pop.classList.contains('show'); }
-
-  fmt(d) {
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-  }
-
+  fmt(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
   same(a, b) { return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
-
   pick(d) { this.selected = d; this.current = new Date(d); this.input.value = this.fmt(d); this.render(); }
-
   setStr(s) { if (!s) return; const d = new Date(s+'T00:00:00'); if (!isNaN(d)) this.pick(d); }
-
   reset() { this.pick(new Date()); }
-
   render() {
     if (!this.moEl || !this.gridEl) return;
     this.moEl.textContent = this.current.toLocaleDateString('en-US', { month:'long', year:'numeric' });
     this.gridEl.innerHTML = '';
-
     const yr = this.current.getFullYear(), mo = this.current.getMonth();
     const firstDow = new Date(yr, mo, 1).getDay();
     const lastDate = new Date(yr, mo+1, 0).getDate();
     const prevLast = new Date(yr, mo, 0).getDate();
-    const today    = new Date();
+    const today = new Date();
     const trailing = (firstDow + lastDate) % 7 === 0 ? 0 : 7 - ((firstDow + lastDate) % 7);
-
-    const mk = (n, cls) => {
-      const el = document.createElement('div');
-      el.className = `dp-day${cls ? ' '+cls : ''}`;
-      el.textContent = n;
-      return el;
-    };
-
+    const mk = (n, cls) => { const el = document.createElement('div'); el.className = `dp-day${cls ? ' '+cls : ''}`; el.textContent = n; return el; };
     for (let i = firstDow-1; i >= 0; i--) this.gridEl.appendChild(mk(prevLast-i, 'other'));
-
     for (let d = 1; d <= lastDate; d++) {
       const date = new Date(yr, mo, d);
       let cls = '';
@@ -170,7 +135,6 @@ class Datepicker {
       el.addEventListener('click', () => { this.pick(date); this.hide(); });
       this.gridEl.appendChild(el);
     }
-
     for (let d = 1; d <= trailing; d++) this.gridEl.appendChild(mk(d, 'other'));
   }
 }
@@ -187,7 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
   bindLogin();
   bindSidebar();
   bindModal();
-  bindSearch();
+  bindSearchAll();
   bindDragDrop();
 });
 
@@ -204,7 +168,7 @@ function bindLogin() {
       sessionStorage.setItem('adminLoggedIn', 'true');
       initPanel();
     } else {
-      err.textContent = 'Invalid username or password. Please try again.';
+      err.textContent = 'Invalid username or password.';
       err.classList.add('show');
       setTimeout(() => err.classList.remove('show'), 3500);
     }
@@ -213,22 +177,23 @@ function bindLogin() {
 
 function showLogin() {
   document.getElementById('loginSection').style.display = 'flex';
-  document.getElementById('adminPanel').style.display   = 'none';
+  document.getElementById('adminPanel').style.display = 'none';
 }
 
 function initPanel() {
   document.getElementById('loginSection').style.display = 'none';
-  document.getElementById('adminPanel').style.display   = 'flex';
-  // Drawer open by default on desktop
+  document.getElementById('adminPanel').style.display = 'flex';
   document.getElementById('sidebar')?.classList.add('open');
   document.getElementById('mainArea')?.classList.add('shifted');
   if (!dp) dp = new Datepicker();
-  if (!formBound) { bindBlogForm(); formBound = true; }
+  if (!formBound) { bindBlogForm(); bindTechForm(); bindProjectForm(); formBound = true; }
   loadBlogs();
+  loadTechList();
+  loadProjects();
 }
 
 // ============================================
-// SIDEBAR
+// SIDEBAR + NAVIGATION
 // ============================================
 function bindSidebar() {
   const sidebar = document.getElementById('sidebar');
@@ -238,31 +203,42 @@ function bindSidebar() {
   const sbTog   = document.getElementById('sbToggle');
   const main    = document.getElementById('mainArea');
 
-  // Mobile open
-  mobBtn?.addEventListener('click', () => {
-    sidebar.classList.add('mobile-open');
-    back.classList.add('show');
-  });
-
-  // Close via backdrop
+  mobBtn?.addEventListener('click', () => { sidebar.classList.add('mobile-open'); back.classList.add('show'); });
   back?.addEventListener('click', closeMobile);
 
-  function closeMobile() {
-    sidebar.classList.remove('mobile-open');
-    back.classList.remove('show');
-  }
+  function closeMobile() { sidebar.classList.remove('mobile-open'); back.classList.remove('show'); }
 
-  // Desktop icon-toggle in topbar
-  deskBtn?.addEventListener('click', () => toggleDesktop());
-
-  // Desktop toggle inside sidebar footer
-  sbTog?.addEventListener('click', () => toggleDesktop());
+  deskBtn?.addEventListener('click', toggleDesktop);
+  sbTog?.addEventListener('click', toggleDesktop);
 
   function toggleDesktop() {
     sbExpanded = !sbExpanded;
     sidebar.classList.toggle('open', sbExpanded);
     main?.classList.toggle('shifted', sbExpanded);
   }
+
+  // Section navigation
+  document.querySelectorAll('.sb-item[data-section]').forEach(item => {
+    item.addEventListener('click', e => {
+      e.preventDefault();
+      const sectionId = item.dataset.section;
+      const title = item.querySelector('.sb-lbl')?.textContent || '';
+
+      // Update active nav item
+      document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+
+      // Switch section
+      document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+      document.getElementById(sectionId)?.classList.add('active');
+
+      // Update topbar title
+      document.getElementById('pageTitle').textContent = title;
+
+      // Close mobile
+      closeMobile();
+    });
+  });
 
   // Logout
   document.getElementById('logoutBtn')?.addEventListener('click', e => {
@@ -275,16 +251,21 @@ function bindSidebar() {
 }
 
 // ============================================
-// DRAG & DROP
+// DRAG & DROP (Blog)
 // ============================================
 function bindDragDrop() {
-  const zone = document.getElementById('fileZone');
+  bindZoneDrop('fileZone', 'blogImage', file => processImageFor(file, 'blog'));
+  bindZoneDrop('projFileZone', 'projectImage', file => processImageFor(file, 'project'));
+}
+
+function bindZoneDrop(zoneId, inputId, handler) {
+  const zone = document.getElementById(zoneId);
   if (!zone) return;
   ['dragenter','dragover'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.add('drag'); }));
   ['dragleave','drop'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.remove('drag'); }));
   zone.addEventListener('drop', e => {
     const f = e.dataTransfer?.files?.[0];
-    if (f?.type.startsWith('image/')) processImage(f);
+    if (f?.type.startsWith('image/')) handler(f);
   });
 }
 
@@ -294,55 +275,51 @@ function bindDragDrop() {
 function bindBlogForm() {
   document.getElementById('blogImage')?.addEventListener('change', e => {
     const f = e.target.files?.[0];
-    if (f) processImage(f);
+    if (f) processImageFor(f, 'blog');
   });
-
   document.getElementById('blogForm')?.addEventListener('submit', async e => {
     e.preventDefault();
-    await doSave();
+    await saveBlog();
   });
-
-  document.getElementById('cancelBtn')?.addEventListener('click', resetForm);
+  document.getElementById('cancelBtn')?.addEventListener('click', resetBlogForm);
 }
 
-// Image processing + preview
-async function processImage(file) {
-  const prev = document.getElementById('imgPrev');
-  const img  = document.getElementById('prevImg');
-  const meta = document.getElementById('prevMeta');
+async function processImageFor(file, target) {
+  const prevId  = target === 'blog' ? 'imgPrev' : 'projImgPrev';
+  const imgId   = target === 'blog' ? 'prevImg' : 'projPrevImg';
+  const metaId  = target === 'blog' ? 'prevMeta' : 'projPrevMeta';
+  const prev    = document.getElementById(prevId);
+  const img     = document.getElementById(imgId);
+  const meta    = document.getElementById(metaId);
   if (!prev || !img) return;
 
   prev.classList.add('show');
   img.style.opacity = '0.3';
-  meta.innerHTML = '<span>⏳ Compressing image…</span>';
+  meta.innerHTML = '<span>⏳ Compressing…</span>';
 
   try {
     const r = await compressImage(file);
-    compressedB64 = r.base64;
+    if (target === 'blog') compressedB64Blog = r.base64;
+    else compressedB64Project = r.base64;
     img.src = r.base64;
     img.style.opacity = '1';
-
-    if (r.compressed) {
-      meta.innerHTML = `<span>📦 ${r.origKB} KB → ${r.finalKB} KB</span><span class="ctag">✓ Compressed</span>`;
-    } else {
-      meta.innerHTML = `<span>📦 ${r.origKB} KB</span><span class="ctag" style="background:rgba(56,189,248,.1);border-color:rgba(56,189,248,.25);color:var(--info)">✓ Ready</span>`;
-    }
-    console.log(`🖼 Image: ${r.origKB}KB → ${r.finalKB}KB, compressed=${r.compressed}`);
+    meta.innerHTML = r.compressed
+      ? `<span>📦 ${r.origKB} KB → ${r.finalKB} KB</span><span class="ctag">✓ Compressed</span>`
+      : `<span>📦 ${r.origKB} KB</span><span class="ctag" style="background:rgba(56,189,248,.1);border-color:rgba(56,189,248,.25);color:var(--info)">✓ Ready</span>`;
   } catch (err) {
-    compressedB64 = null;
+    if (target === 'blog') compressedB64Blog = null;
+    else compressedB64Project = null;
     prev.classList.remove('show');
     toast('Image error: ' + err.message, 'err');
   }
 }
 
-// Save
-async function doSave() {
+async function saveBlog() {
   const btn = document.getElementById('submitBtn');
   const txt = document.getElementById('submitTxt');
   const orig = txt.textContent;
   btn.disabled = true;
   txt.innerHTML = '<span class="spin"></span>&nbsp;Saving…';
-
   try {
     const data = {
       title:    val('blogTitle'),
@@ -355,88 +332,67 @@ async function doSave() {
       content:  val('blogContent'),
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
-
-    if (compressedB64) {
-      data.imageUrl = compressedB64;
-    } else if (editingId) {
-      data.imageUrl = blogs.find(b => b.id === editingId)?.imageUrl || null;
-    }
-
-    if (!editingId) data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-
-    if (editingId) {
-      await db.collection('blogs').doc(editingId).update(data);
+    if (compressedB64Blog) data.imageUrl = compressedB64Blog;
+    else if (editingBlogId) data.imageUrl = blogs.find(b => b.id === editingBlogId)?.imageUrl || null;
+    if (!editingBlogId) data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+    if (editingBlogId) {
+      await db.collection('blogs').doc(editingBlogId).update(data);
       toast('Blog updated!', 'ok');
     } else {
       await db.collection('blogs').add(data);
       toast('Blog published!', 'ok');
     }
-
-    resetForm();
-    await loadBlogs();
+    resetBlogForm();
+    await loadBlogs(true);
   } catch (e) {
     toast('Error: ' + e.message, 'err');
+    txt.textContent = editingBlogId ? 'Update Blog Post' : 'Add Blog Post';
   } finally {
     btn.disabled = false;
-    txt.textContent = orig;
   }
 }
 
 function val(id) { return document.getElementById(id)?.value?.trim() || ''; }
 
-function resetForm() {
+function resetBlogForm() {
   document.getElementById('blogForm')?.reset();
-  compressedB64 = null; editingId = null;
-
+  compressedB64Blog = null; editingBlogId = null;
   const prev = document.getElementById('imgPrev');
-  if (prev) {
-    prev.classList.remove('show');
-    document.getElementById('prevImg').src = '';
-    document.getElementById('prevMeta').innerHTML = '';
-  }
-
+  if (prev) { prev.classList.remove('show'); document.getElementById('prevImg').src = ''; document.getElementById('prevMeta').innerHTML = ''; }
   document.getElementById('formTitle').textContent = 'Add New Blog Post';
-  document.getElementById('submitTxt').textContent  = 'Add Blog Post';
+  document.getElementById('submitTxt').textContent = 'Add Blog Post';
   document.getElementById('cancelBtn').style.display = 'none';
-
   dp?.reset();
 }
 
 // ============================================
-// LOAD BLOGS
+// LOAD & RENDER BLOGS
 // ============================================
-async function loadBlogs() {
+async function loadBlogs(showError = false) {
   try {
     const snap = await db.collection('blogs').orderBy('createdAt','desc').get();
     blogs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderTable(blogs);
+    renderBlogTable(blogs);
   } catch (e) {
-    toast('Load error: ' + e.message, 'err');
+    if (showError) toast('Load error: ' + e.message, 'err');
     blogs = [];
-    renderTable([]);
+    renderBlogTable([]);
   }
 }
 
-// ============================================
-// RENDER TABLE
-// ============================================
-function renderTable(list) {
+function renderBlogTable(list) {
   const tbody = document.getElementById('blogTbody');
-  const empty = document.getElementById('emptyState');
+  const empty = document.getElementById('emptyBlogState');
   if (!tbody || !empty) return;
-
   if (!list.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
   empty.style.display = 'none';
-
   tbody.innerHTML = list.map(b => {
     const thumb = b.imageUrl
       ? `<img class="thumb" src="${b.imageUrl}" alt="" loading="lazy" onerror="this.style.display='none'">`
       : `<div class="thumb-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>`;
-
     const feat = b.featured === 'yes'
       ? `<span class="badge badge-feat"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> Featured</span>`
       : `<span style="color:var(--t3)">—</span>`;
-
     return `<tr>
       <td>${thumb}</td>
       <td class="ttl-cell" title="${esc(b.title)}">${esc(b.title)}</td>
@@ -444,68 +400,373 @@ function renderTable(list) {
       <td style="color:var(--t2)">${esc(b.author)}</td>
       <td style="color:var(--t2);white-space:nowrap">${fmtDate(b.date)}</td>
       <td>${feat}</td>
-      <td>
-        <div class="act-cell">
-          <button class="ibtn edit" onclick="editBlog('${b.id}')" title="Edit post">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-          </button>
-          <button class="ibtn del" onclick="openDelete('${b.id}')" title="Delete post">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
-          </button>
-        </div>
-      </td>
+      <td><div class="act-cell">
+        <button class="ibtn edit" onclick="editBlog('${b.id}')" title="Edit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+        </button>
+        <button class="ibtn del" onclick="openDelete('${b.id}','blog')" title="Delete">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+        </button>
+      </div></td>
     </tr>`;
   }).join('');
 }
 
-// ============================================
-// EDIT
-// ============================================
 window.editBlog = function(id) {
   const b = blogs.find(x => x.id === id);
   if (!b) return toast('Post not found', 'err');
-
-  editingId = id; compressedB64 = null;
-  ['blogTitle','blogCategory','blogAuthor','blogReadTime','blogFeatured','blogExcerpt','blogContent']
-    .forEach(fid => {
-      const el = document.getElementById(fid);
-      const key = fid.replace('blog','').charAt(0).toLowerCase() + fid.replace('blog','').slice(1);
-      const mapped = { Title:'title',Category:'category',Author:'author',ReadTime:'readTime',Featured:'featured',Excerpt:'excerpt',Content:'content' };
-      const k = mapped[fid.replace('blog','')];
-      if (el && b[k] !== undefined) el.value = b[k];
-    });
-
+  editingBlogId = id; compressedB64Blog = null;
+  const mapped = { blogTitle:'title', blogCategory:'category', blogAuthor:'author', blogReadTime:'readTime', blogFeatured:'featured', blogExcerpt:'excerpt', blogContent:'content' };
+  Object.entries(mapped).forEach(([fid, key]) => { const el = document.getElementById(fid); if (el && b[key] !== undefined) el.value = b[key]; });
   dp?.setStr(b.date);
-
   const prev = document.getElementById('imgPrev');
   if (b.imageUrl && prev) {
     document.getElementById('prevImg').src = b.imageUrl;
     document.getElementById('prevMeta').innerHTML = '<span style="color:var(--t2)">Existing image</span>';
     prev.classList.add('show');
   }
-
   document.getElementById('formTitle').textContent = 'Edit Blog Post';
-  document.getElementById('submitTxt').textContent  = 'Update Blog Post';
+  document.getElementById('submitTxt').textContent = 'Update Blog Post';
   document.getElementById('cancelBtn').style.display = 'inline-flex';
+
+  // Switch to blog section
+  switchSection('blogSection', 'navBlog', 'Blog Management');
   document.getElementById('blogForm')?.scrollIntoView({ behavior:'smooth', block:'start' });
 };
 
 // ============================================
-// DELETE
+// TECHNOLOGY MASTER
 // ============================================
-window.openDelete = function(id) {
+function bindTechForm() {
+  document.getElementById('techForm')?.addEventListener('submit', async e => {
+    e.preventDefault();
+    await saveTech();
+  });
+}
+
+async function saveTech() {
+  const btn = document.getElementById('techSubmitBtn');
+  const txt = document.getElementById('techSubmitTxt');
+  btn.disabled = true;
+  txt.innerHTML = '<span class="spin"></span>&nbsp;Saving…';
+
+  // Validate first — before touching Firestore
+  const name = val('techName');
+  if (!name) {
+    toast('Technology name is required', 'err');
+    btn.disabled = false;
+    txt.textContent = editingTechId ? 'Update Technology' : 'Add Technology';
+    return;
+  }
+
+  try {
+    const data = {
+      name,
+      category: val('techCategory'),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    if (editingTechId) {
+      await db.collection('technologies').doc(editingTechId).update(data);
+      toast('Technology updated!', 'ok');
+      editingTechId = null;
+    } else {
+      data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection('technologies').add(data);
+      toast('Technology added!', 'ok');
+    }
+    document.getElementById('techForm')?.reset();
+    txt.textContent = 'Add Technology';
+    // loadTechList already calls buildTechDropdown internally — no duplicate call needed
+    await loadTechList(true);
+  } catch (e) {
+    toast('Save error: ' + e.message, 'err');
+    txt.textContent = editingTechId ? 'Update Technology' : 'Add Technology';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function loadTechList(showError = false) {
+  try {
+    const snap = await db.collection('technologies').orderBy('name','asc').get();
+    techList = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderTechTable(techList);
+    buildTechDropdown();
+  } catch (e) {
+    // Only show error toast when user explicitly triggered the action, not on background init
+    if (showError) toast('Tech load error: ' + e.message, 'err');
+    techList = [];
+    renderTechTable([]);
+    buildTechDropdown();
+  }
+}
+
+function renderTechTable(list) {
+  const tbody = document.getElementById('techTbody');
+  const empty = document.getElementById('emptyTechState');
+  if (!tbody || !empty) return;
+  if (!list.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = list.map(t => `
+    <tr>
+      <td style="font-weight:600">${esc(t.name)}</td>
+      <td><span class="badge badge-tech">${esc(t.category)}</span></td>
+      <td><div class="act-cell">
+        <button class="ibtn edit" onclick="editTech('${t.id}')" title="Edit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+        </button>
+        <button class="ibtn del" onclick="openDelete('${t.id}','tech')" title="Delete">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+        </button>
+      </div></td>
+    </tr>
+  `).join('');
+}
+
+window.editTech = function(id) {
+  const t = techList.find(x => x.id === id);
+  if (!t) return;
+  editingTechId = id;
+  document.getElementById('techName').value = t.name;
+  document.getElementById('techCategory').value = t.category;
+  document.getElementById('techSubmitTxt').textContent = 'Update Technology';
+  switchSection('techMasterSection', 'navTechMaster', 'Technology Master');
+  document.getElementById('techForm')?.scrollIntoView({ behavior:'smooth', block:'start' });
+};
+
+// ============================================
+// PROJECT MASTER
+// ============================================
+function bindProjectForm() {
+  document.getElementById('projectImage')?.addEventListener('change', e => {
+    const f = e.target.files?.[0];
+    if (f) processImageFor(f, 'project');
+  });
+  document.getElementById('projectForm')?.addEventListener('submit', async e => {
+    e.preventDefault();
+    await saveProject();
+  });
+  document.getElementById('projectCancelBtn')?.addEventListener('click', resetProjectForm);
+
+  // Tech tags input
+  const input = document.getElementById('techTagsInput');
+  const dropdown = document.getElementById('techDropdown');
+
+  input?.addEventListener('input', () => {
+    const q = input.value.toLowerCase();
+    renderTechDropdown(q);
+    dropdown.classList.toggle('show', q.length > 0 || document.activeElement === input);
+  });
+
+  input?.addEventListener('focus', () => {
+    renderTechDropdown(input.value.toLowerCase());
+    dropdown.classList.add('show');
+  });
+
+  document.addEventListener('click', e => {
+    if (!document.getElementById('techTagsWrap')?.contains(e.target)) {
+      dropdown.classList.remove('show');
+    }
+  });
+}
+
+function buildTechDropdown() {
+  renderTechDropdown('');
+}
+
+function renderTechDropdown(query) {
+  const dropdown = document.getElementById('techDropdown');
+  if (!dropdown) return;
+  const filtered = techList.filter(t =>
+    t.name.toLowerCase().includes(query) && !selectedTechs.includes(t.name)
+  );
+  if (!filtered.length) {
+    dropdown.innerHTML = `<div class="tech-dropdown-item" style="color:var(--t3);cursor:default">No technologies found</div>`;
+    return;
+  }
+  dropdown.innerHTML = filtered.map(t => `
+    <div class="tech-dropdown-item" onclick="selectTech('${esc(t.name)}')">
+      <span>${esc(t.name)}</span>
+      <span style="color:var(--t3);font-size:.75rem;margin-left:auto">${esc(t.category)}</span>
+    </div>
+  `).join('');
+}
+
+window.selectTech = function(name) {
+  if (!selectedTechs.includes(name)) {
+    selectedTechs.push(name);
+    renderTechTags();
+  }
+  const input = document.getElementById('techTagsInput');
+  const dropdown = document.getElementById('techDropdown');
+  if (input) input.value = '';
+  dropdown?.classList.remove('show');
+};
+
+window.removeTech = function(name) {
+  selectedTechs = selectedTechs.filter(t => t !== name);
+  renderTechTags();
+};
+
+function renderTechTags() {
+  const wrap = document.getElementById('selectedTechTags');
+  if (!wrap) return;
+  wrap.innerHTML = selectedTechs.map(name => `
+    <div class="tag-chip">
+      <span>${esc(name)}</span>
+      <span class="tag-chip-del" onclick="removeTech('${esc(name)}')" title="Remove">×</span>
+    </div>
+  `).join('');
+}
+
+async function saveProject() {
+  const btn = document.getElementById('projectSubmitBtn');
+  const txt = document.getElementById('projectSubmitTxt');
+  const orig = txt.textContent;
+  btn.disabled = true;
+  txt.innerHTML = '<span class="spin"></span>&nbsp;Saving…';
+  try {
+    const data = {
+      name:        val('projectName'),
+      category:    val('projectCategory'),
+      description: val('projectDescription'),
+      details:     val('projectDetails'),
+      technologies: [...selectedTechs],
+      stat1Label:  val('projectStat1Label'),
+      stat1Value:  val('projectStat1Value'),
+      stat2Label:  val('projectStat2Label'),
+      stat2Value:  val('projectStat2Value'),
+      year:        val('projectYear'),
+      featured:    val('projectFeatured'),
+      updatedAt:   firebase.firestore.FieldValue.serverTimestamp()
+    };
+    if (compressedB64Project) data.imageUrl = compressedB64Project;
+    else if (editingProjectId) data.imageUrl = projects.find(p => p.id === editingProjectId)?.imageUrl || null;
+    if (!editingProjectId) data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+    if (editingProjectId) {
+      await db.collection('projects').doc(editingProjectId).update(data);
+      toast('Project updated!', 'ok');
+    } else {
+      await db.collection('projects').add(data);
+      toast('Project added!', 'ok');
+    }
+    resetProjectForm();
+    await loadProjects(true);
+  } catch (e) {
+    toast('Error: ' + e.message, 'err');
+    txt.textContent = editingProjectId ? 'Update Project' : 'Add Project';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function resetProjectForm() {
+  document.getElementById('projectForm')?.reset();
+  compressedB64Project = null; editingProjectId = null;
+  selectedTechs = [];
+  renderTechTags();
+  const prev = document.getElementById('projImgPrev');
+  if (prev) { prev.classList.remove('show'); document.getElementById('projPrevImg').src = ''; document.getElementById('projPrevMeta').innerHTML = ''; }
+  document.getElementById('projectFormTitle').textContent = 'Add New Project';
+  document.getElementById('projectSubmitTxt').textContent = 'Add Project';
+  document.getElementById('projectCancelBtn').style.display = 'none';
+}
+
+async function loadProjects(showError = false) {
+  try {
+    const snap = await db.collection('projects').orderBy('createdAt','desc').get();
+    projects = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderProjectTable(projects);
+  } catch (e) {
+    if (showError) toast('Projects load error: ' + e.message, 'err');
+    projects = [];
+    renderProjectTable([]);
+  }
+}
+
+function renderProjectTable(list) {
+  const tbody = document.getElementById('projectTbody');
+  const empty = document.getElementById('emptyProjectState');
+  if (!tbody || !empty) return;
+  if (!list.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = list.map(p => {
+    const thumb = p.imageUrl
+      ? `<img class="thumb" src="${p.imageUrl}" alt="" loading="lazy" onerror="this.style.display='none'">`
+      : `<div class="thumb-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>`;
+    const feat = p.featured === 'yes'
+      ? `<span class="badge badge-feat">Featured</span>`
+      : `<span style="color:var(--t3)">—</span>`;
+    const techs = (p.technologies || []).slice(0, 3).map(t => `<span class="badge badge-tech" style="margin-right:2px;margin-bottom:2px">${esc(t)}</span>`).join('');
+    return `<tr>
+      <td>${thumb}</td>
+      <td class="ttl-cell" title="${esc(p.name)}">${esc(p.name)}</td>
+      <td><span class="badge badge-cat">${esc(p.category?.toUpperCase())}</span></td>
+      <td style="max-width:160px">${techs}</td>
+      <td style="color:var(--t2)">${esc(p.year)}</td>
+      <td>${feat}</td>
+      <td><div class="act-cell">
+        <button class="ibtn edit" onclick="editProject('${p.id}')" title="Edit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+        </button>
+        <button class="ibtn del" onclick="openDelete('${p.id}','project')" title="Delete">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+        </button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+window.editProject = function(id) {
+  const p = projects.find(x => x.id === id);
+  if (!p) return toast('Project not found', 'err');
+  editingProjectId = id; compressedB64Project = null;
+  const mapped = {
+    projectName:'name', projectCategory:'category', projectDescription:'description',
+    projectDetails:'details', projectStat1Label:'stat1Label', projectStat1Value:'stat1Value',
+    projectStat2Label:'stat2Label', projectStat2Value:'stat2Value', projectYear:'year', projectFeatured:'featured'
+  };
+  Object.entries(mapped).forEach(([fid, key]) => {
+    const el = document.getElementById(fid);
+    if (el && p[key] !== undefined) el.value = p[key];
+  });
+  selectedTechs = [...(p.technologies || [])];
+  renderTechTags();
+  const prev = document.getElementById('projImgPrev');
+  if (p.imageUrl && prev) {
+    document.getElementById('projPrevImg').src = p.imageUrl;
+    document.getElementById('projPrevMeta').innerHTML = '<span style="color:var(--t2)">Existing image</span>';
+    prev.classList.add('show');
+  }
+  document.getElementById('projectFormTitle').textContent = 'Edit Project';
+  document.getElementById('projectSubmitTxt').textContent = 'Update Project';
+  document.getElementById('projectCancelBtn').style.display = 'inline-flex';
+  switchSection('projectSection', 'navProject', 'Project Master');
+  document.getElementById('projectForm')?.scrollIntoView({ behavior:'smooth', block:'start' });
+};
+
+// ============================================
+// DELETE (shared)
+// ============================================
+window.openDelete = function(id, type) {
   deleteTarget = id;
+  deleteType = type;
+  const titles = { blog:'Delete Blog Post', tech:'Delete Technology', project:'Delete Project' };
+  document.getElementById('deleteModalTitle').textContent = titles[type] || 'Confirm Delete';
   document.getElementById('deleteModal').classList.add('show');
 };
 
 function bindModal() {
   document.getElementById('confirmDelete')?.addEventListener('click', async () => {
-    if (!deleteTarget) return;
+    if (!deleteTarget || !deleteType) return;
     try {
-      await db.collection('blogs').doc(deleteTarget).delete();
-      toast('Post deleted', 'ok');
+      const collMap = { blog:'blogs', tech:'technologies', project:'projects' };
+      await db.collection(collMap[deleteType]).doc(deleteTarget).delete();
+      toast('Deleted successfully', 'ok');
       closeModal();
-      await loadBlogs();
+      if (deleteType === 'blog') await loadBlogs(true);
+      if (deleteType === 'tech') await loadTechList(true);
+      if (deleteType === 'project') await loadProjects(true);
     } catch (e) { toast('Delete failed: ' + e.message, 'err'); }
   });
   document.getElementById('cancelDelete')?.addEventListener('click', closeModal);
@@ -517,24 +778,44 @@ function bindModal() {
 
 function closeModal() {
   document.getElementById('deleteModal').classList.remove('show');
-  deleteTarget = null;
+  deleteTarget = null; deleteType = null;
 }
 
 // ============================================
 // SEARCH
 // ============================================
-function bindSearch() {
+function bindSearchAll() {
   document.getElementById('searchBlogs')?.addEventListener('input', e => {
     const q = e.target.value.toLowerCase().trim();
-    renderTable(!q ? blogs : blogs.filter(b =>
+    renderBlogTable(!q ? blogs : blogs.filter(b =>
       [b.title, b.category, b.author, b.excerpt].some(f => f?.toLowerCase().includes(q))
+    ));
+  });
+  document.getElementById('searchTech')?.addEventListener('input', e => {
+    const q = e.target.value.toLowerCase().trim();
+    renderTechTable(!q ? techList : techList.filter(t =>
+      [t.name, t.category].some(f => f?.toLowerCase().includes(q))
+    ));
+  });
+  document.getElementById('searchProjects')?.addEventListener('input', e => {
+    const q = e.target.value.toLowerCase().trim();
+    renderProjectTable(!q ? projects : projects.filter(p =>
+      [p.name, p.category, p.description, ...(p.technologies||[])].some(f => f?.toLowerCase().includes(q))
     ));
   });
 }
 
 // ============================================
-// UTILITIES
+// HELPERS
 // ============================================
+function switchSection(sectionId, navId, title) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.getElementById(sectionId)?.classList.add('active');
+  document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
+  document.getElementById(navId)?.classList.add('active');
+  document.getElementById('pageTitle').textContent = title;
+}
+
 function fmtDate(s) {
   if (!s) return '—';
   try { return new Date(s+'T00:00:00').toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'}); }
@@ -552,12 +833,10 @@ function esc(s) {
 function toast(msg, type = 'ok') {
   const tray = document.getElementById('toastTray');
   if (!tray) return;
-
   const icons = {
     ok:  `<svg class="t-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`,
     err: `<svg class="t-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`
   };
-
   const el = document.createElement('div');
   el.className = `toast ${type}`;
   el.innerHTML = `${icons[type]||''}<span>${msg}</span>`;
@@ -565,4 +844,4 @@ function toast(msg, type = 'ok') {
   setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 300); }, 3500);
 }
 
-console.log('✅ ZettaCoreLab admin.js loaded — violet/navy theme');
+console.log('✅ ZettaCoreLab admin.js loaded — Blog + Tech Master + Project Master');
