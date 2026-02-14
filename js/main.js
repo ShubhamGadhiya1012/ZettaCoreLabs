@@ -572,3 +572,92 @@ if (document.getElementById('blockchain-canvas')) {
 window.addEventListener('load', () => {
     document.body.classList.add('loaded');
 });
+
+
+// =================================
+// LOAD AND DISPLAY TECHNOLOGIES FROM FIREBASE
+// =================================
+async function loadTechnologies() {
+    try {
+        const snapshot = await db.collection('technologies')
+            .orderBy('name', 'asc')
+            .get();
+        
+        const technologies = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+        
+        if (technologies.length > 0) {
+            renderTechnologies(technologies);
+        } else {
+            // Fallback to static technologies if none in database
+            const fallbackTechs = [
+                { name: 'Ethereum' },
+                { name: 'Solidity' },
+                { name: 'Polygon' },
+                { name: 'Hyperledger' },
+                { name: 'Web3.js' },
+                { name: 'IPFS' },
+                { name: 'Rust' },
+                { name: 'Solana' }
+            ];
+            renderTechnologies(fallbackTechs);
+        }
+    } catch (error) {
+        console.error('Error loading technologies:', error);
+        // Fallback technologies
+        const fallbackTechs = [
+            { name: 'Ethereum' },
+            { name: 'Solidity' },
+            { name: 'Polygon' },
+            { name: 'Hyperledger' },
+            { name: 'Web3.js' },
+            { name: 'IPFS' },
+            { name: 'Rust' },
+            { name: 'Solana' }
+        ];
+        renderTechnologies(fallbackTechs);
+    }
+}
+
+function renderTechnologies(technologies) {
+    const row1 = document.getElementById('techScrollRow1');
+    const row2 = document.getElementById('techScrollRow2');
+    
+    if (!row1 || !row2) return;
+    
+    // Split technologies into two rows
+    const midpoint = Math.ceil(technologies.length / 2);
+    const row1Techs = technologies.slice(0, midpoint);
+    const row2Techs = technologies.slice(midpoint);
+    
+    // Create tech items HTML
+    const createTechItems = (techs) => {
+        return techs.map(tech => 
+            `<div class="tech-item">${escapeHtml(tech.name)}</div>`
+        ).join('');
+    };
+    
+    // Duplicate content for seamless loop
+    const row1Content = createTechItems(row1Techs);
+    const row2Content = createTechItems(row2Techs);
+    
+    row1.innerHTML = row1Content + row1Content;
+    row2.innerHTML = row2Content + row2Content;
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Load technologies when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    // Wait for Firebase to initialize
+    setTimeout(() => {
+        loadTechnologies();
+    }, 500);
+});

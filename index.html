@@ -127,15 +127,13 @@
                 <h2>Our Technology Stack</h2>
                 <p>Industry-leading tools and frameworks</p>
             </div>
-            <div class="tech-grid">
-                <div class="tech-item">Ethereum</div>
-                <div class="tech-item">Solidity</div>
-                <div class="tech-item">Polygon</div>
-                <div class="tech-item">Hyperledger</div>
-                <div class="tech-item">Web3.js</div>
-                <div class="tech-item">IPFS</div>
-                <div class="tech-item">Rust</div>
-                <div class="tech-item">Solana</div>
+            <div class="tech-scroll-wrapper">
+                <div class="tech-scroll-track" id="techScrollRow1">
+                    <!-- Row 1 will be populated dynamically -->
+                </div>
+                <div class="tech-scroll-track" id="techScrollRow2">
+                    <!-- Row 2 will be populated dynamically -->
+                </div>
             </div>
         </div>
     </section>
@@ -200,8 +198,11 @@
         </div>
     </footer>
 
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="js/firebase-config.js"></script>
     <script src="js/main.js"></script>
 </body>
 

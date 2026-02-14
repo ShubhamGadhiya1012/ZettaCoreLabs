@@ -1648,3 +1648,77 @@ body {
         text-align: center;
     }
 }
+
+/* =================================
+   TECHNOLOGY STACK - ANIMATED SCROLL
+================================= */
+#technologies {
+    padding: 6rem 0;
+    overflow: hidden;
+}
+
+.tech-scroll-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-top: 3rem;
+}
+
+.tech-scroll-track {
+    display: flex;
+    gap: 1.5rem;
+    width: fit-content;
+    animation: scrollLeft 30s linear infinite;
+}
+
+.tech-scroll-track:nth-child(2) {
+    animation: scrollLeft 35s linear infinite;
+}
+
+.tech-scroll-track:hover {
+    animation-play-state: paused;
+}
+
+.tech-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem 2.5rem;
+    text-align: center;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+    min-width: 150px;
+}
+
+.tech-item:hover {
+    border-color: var(--primary-purple);
+    background: var(--bg-card-hover);
+    transform: translateY(-3px);
+}
+
+@keyframes scrollLeft {
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+@media (max-width: 768px) {
+    .tech-scroll-track {
+        animation-duration: 20s;
+    }
+
+    .tech-scroll-track:nth-child(2) {
+        animation-duration: 25s;
+    }
+
+    .tech-item {
+        padding: 1rem 1.5rem;
+        min-width: 120px;
+    }
+}
