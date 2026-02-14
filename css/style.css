@@ -53,6 +53,8 @@ body {
     backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--border-color);
     transition: all 0.3s ease;
+    height: 70px;
+    /* FIXED HEIGHT */
 }
 
 #navbar.scrolled {
@@ -73,41 +75,45 @@ body {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
+.full-logo {
+    height: 60px;
+    width: auto;
+    object-fit: contain;
+    display: block;
+}
+
+/* Navbar adjustments to accommodate larger logo */
 .nav-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 2rem;
+    padding: 0 2rem;
+    /* NO top/bottom padding */
+    height: 100%;
+    /* Full height of navbar */
 }
 
 .nav-logo {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    text-decoration: none;
+    height: 100%;
+    /* Vertically center */
 }
 
-.logo-icon {
-    width: 32px;
-    height: 32px;
-    background: linear-gradient(135deg, var(--primary-purple), var(--primary-purple-light));
-    border-radius: 8px;
-    position: relative;
-}
 
-.logo-icon::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 16px;
-    height: 16px;
-    background: var(--bg-dark);
-    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+@media (max-width: 768px) {
+    #navbar {
+        height: 65px;
+        /* Slightly shorter on mobile */
+    }
+
+    .full-logo {
+        height: 50px;
+    }
+
+    .nav-container {
+        padding: 0 1rem;
+    }
 }
 
 .nav-menu {
@@ -115,6 +121,8 @@ body {
     list-style: none;
     gap: 2rem;
     align-items: center;
+    height: 100%;
+    /* Vertically center menu items */
 }
 
 .nav-menu a {
@@ -737,7 +745,7 @@ body {
     margin-bottom: 1rem;
 }
 
-.service-content > p {
+.service-content>p {
     color: var(--text-secondary);
     margin-bottom: 1.5rem;
     line-height: 1.8;
@@ -912,7 +920,7 @@ body {
     margin-bottom: 0.75rem;
 }
 
-.project-content > p {
+.project-content>p {
     color: var(--text-secondary);
     margin-bottom: 1.5rem;
     line-height: 1.6;
@@ -1125,7 +1133,7 @@ body {
     line-height: 1.4;
 }
 
-.blog-content > p {
+.blog-content>p {
     color: var(--text-secondary);
     margin-bottom: 1rem;
     line-height: 1.6;
@@ -1300,7 +1308,7 @@ body {
     margin-bottom: 1rem;
 }
 
-.contact-info-card > p {
+.contact-info-card>p {
     color: var(--text-secondary);
     margin-bottom: 2rem;
 }
@@ -1532,35 +1540,35 @@ body {
         grid-template-columns: 1fr;
         gap: 3rem;
     }
-    
+
     .hero-visual {
         height: 400px;
     }
-    
+
     .about-intro {
         grid-template-columns: 1fr;
     }
-    
+
     .service-card-large {
         grid-template-columns: 1fr;
     }
-    
+
     .featured-card {
         grid-template-columns: 1fr;
     }
-    
+
     .featured-content {
         padding: 2rem;
     }
-    
+
     .contact-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .contact-info-wrapper {
         position: static;
     }
-    
+
     .footer-content {
         grid-template-columns: 1fr 1fr;
     }
@@ -1570,51 +1578,51 @@ body {
     .hero-title {
         font-size: 2.5rem;
     }
-    
+
     .hero-stats {
         flex-direction: column;
         gap: 1.5rem;
     }
-    
+
     .nav-menu {
         display: none;
     }
-    
+
     .nav-toggle {
         display: flex;
     }
-    
+
     #navbar.floating {
         width: calc(100% - 2rem);
         top: 0.5rem;
     }
-    
+
     .section-header h2 {
         font-size: 2rem;
     }
-    
+
     .page-header-content h1 {
         font-size: 2rem;
     }
-    
+
     .features-grid,
     .projects-layout,
     .blog-layout {
         grid-template-columns: 1fr;
     }
-    
+
     .form-row {
         grid-template-columns: 1fr;
     }
-    
+
     .newsletter-form {
         flex-direction: column;
     }
-    
+
     .footer-content {
         grid-template-columns: 1fr;
     }
-    
+
     .footer-bottom {
         flex-direction: column;
         gap: 1rem;
@@ -1626,15 +1634,15 @@ body {
     .container {
         padding: 0 1rem;
     }
-    
+
     .hero-title {
         font-size: 2rem;
     }
-    
+
     .hero-buttons {
         flex-direction: column;
     }
-    
+
     .btn {
         width: 100%;
         text-align: center;
