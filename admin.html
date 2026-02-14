@@ -59,9 +59,8 @@
     </div>
 
     <nav class="sb-nav">
-      <!-- Blog -->
       <span class="sb-section-label">Content</span>
-      <a class="sb-item active" id="navBlog" href="#" data-section="blogSection" data-tip="Blog">
+      <a class="sb-item active" id="navBlog" href="#" data-section="blogSection">
         <svg class="sb-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
           <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
           <polyline points="14 2 14 8 20 8"/>
@@ -72,8 +71,7 @@
         <span class="sb-tip">Blog Management</span>
       </a>
 
-      <!-- Projects -->
-      <a class="sb-item" id="navProject" href="#" data-section="projectSection" data-tip="Projects">
+      <a class="sb-item" id="navProject" href="#" data-section="projectSection">
         <svg class="sb-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
           <rect x="2" y="3" width="20" height="14" rx="2"/>
           <line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
@@ -84,9 +82,17 @@
 
       <div class="sb-div"></div>
 
-      <!-- Masters -->
       <span class="sb-section-label">Masters</span>
-      <a class="sb-item" id="navTechMaster" href="#" data-section="techMasterSection" data-tip="Technology">
+      <a class="sb-item" id="navCategoryMaster" href="#" data-section="categoryMasterSection">
+        <svg class="sb-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+          <path d="M3 7a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
+          <path d="M3 7l9 6 9-6"/>
+        </svg>
+        <span class="sb-lbl">Category Master</span>
+        <span class="sb-tip">Category Master</span>
+      </a>
+
+      <a class="sb-item" id="navTechMaster" href="#" data-section="techMasterSection">
         <svg class="sb-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
           <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
         </svg>
@@ -98,7 +104,7 @@
     </nav>
 
     <div class="sb-foot">
-      <a class="sb-item danger" id="logoutBtn" href="#" data-tip="Logout">
+      <a class="sb-item danger" id="logoutBtn" href="#">
         <svg class="sb-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
           <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
           <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
@@ -119,12 +125,12 @@
 
     <!-- TOPBAR -->
     <header class="topbar">
-      <button class="mob-btn" id="mobMenuBtn" aria-label="Open menu">
+      <button class="mob-btn" id="mobMenuBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
         </svg>
       </button>
-      <button class="desk-btn" id="deskToggle" aria-label="Toggle sidebar">
+      <button class="desk-btn" id="deskToggle">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/>
         </svg>
@@ -143,8 +149,6 @@
 
       <!-- ==================== BLOG SECTION ==================== -->
       <div id="blogSection" class="page-section active">
-
-        <!-- Blog Form Card -->
         <div class="card">
           <div class="card-top">
             <div class="card-ttl">
@@ -156,7 +160,6 @@
           </div>
           <div class="card-body">
             <form id="blogForm" autocomplete="off">
-              <input type="hidden" id="blogId">
               <div class="f-grid2">
                 <div class="f-group">
                   <label for="blogTitle">Title *</label>
@@ -166,15 +169,7 @@
                   <label for="blogCategory">Category *</label>
                   <select id="blogCategory" required>
                     <option value="">Select Category</option>
-                    <option value="Blockchain">Blockchain</option>
-                    <option value="Smart Contracts">Smart Contracts</option>
-                    <option value="Web3">Web3</option>
-                    <option value="NFT">NFT</option>
-                    <option value="DeFi">DeFi</option>
-                    <option value="AI">AI</option>
-                    <option value="Security">Security</option>
-                    <option value="Enterprise">Enterprise</option>
-                    <option value="Tutorial">Tutorial</option>
+                    <!-- Populated dynamically from Category Master -->
                   </select>
                 </div>
               </div>
@@ -271,7 +266,6 @@
           </div>
         </div>
 
-        <!-- Blog Table Card -->
         <div class="card">
           <div class="card-top">
             <div class="card-ttl">
@@ -305,7 +299,6 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
                 <polyline points="14 2 14 8 20 8"/>
-                <line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
               </svg>
             </div>
             <h4>No blog posts yet</h4>
@@ -314,38 +307,98 @@
         </div>
       </div>
 
-      <!-- ==================== TECHNOLOGY MASTER SECTION ==================== -->
-      <div id="techMasterSection" class="page-section">
-
-        <!-- Add Tech Card -->
+      <!-- ==================== CATEGORY MASTER SECTION ==================== -->
+      <div id="categoryMasterSection" class="page-section">
         <div class="card">
           <div class="card-top">
             <div class="card-ttl">
               <svg class="card-ttl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
               </svg>
-              Add Technology
+              <span id="categoryFormTitle">Add New Category</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <form id="categoryForm" autocomplete="off">
+              <div class="f-group">
+                <label for="categoryName">Category Name *</label>
+                <input type="text" id="categoryName" placeholder="e.g. DeFi, NFT, Enterprise, Web3…" required>
+              </div>
+              <div class="f-actions">
+                <button type="submit" class="btn btn-primary" id="categorySubmitBtn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+                  </svg>
+                  <span id="categorySubmitTxt">Add Category</span>
+                </button>
+                <button type="button" id="categoryCancelBtn" class="btn btn-ghost" style="display:none;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-top">
+            <div class="card-ttl">
+              <svg class="card-ttl-ico cyan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 7a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
+                <path d="M3 7l9 6 9-6"/>
+              </svg>
+              All Categories
+            </div>
+            <div class="tbar">
+              <div class="srch">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                <input type="text" id="searchCategories" class="srch-inp" placeholder="Search categories…">
+              </div>
+            </div>
+          </div>
+          <div class="tbl-scroll">
+            <table class="dtbl">
+              <thead>
+                <tr>
+                  <th style="width:100%">Category Name</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="categoryTbody"></tbody>
+            </table>
+          </div>
+          <div id="emptyCategoryState" class="empty" style="display:none;">
+            <div class="empty-ico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M3 7a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
+                <path d="M3 7l9 6 9-6"/>
+              </svg>
+            </div>
+            <h4>No categories yet</h4>
+            <p>Add your first category above.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== TECHNOLOGY MASTER SECTION ==================== -->
+      <div id="techMasterSection" class="page-section">
+        <div class="card">
+          <div class="card-top">
+            <div class="card-ttl">
+              <svg class="card-ttl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+              </svg>
+              <span id="techFormTitle">Add New Technology</span>
             </div>
           </div>
           <div class="card-body">
             <form id="techForm" autocomplete="off">
-              <div class="f-grid2">
-                <div class="f-group">
-                  <label for="techName">Technology Name *</label>
-                  <input type="text" id="techName" placeholder="e.g. Ethereum, Solana, Rust…" required>
-                </div>
-                <div class="f-group">
-                  <label for="techCategory">Category</label>
-                  <select id="techCategory">
-                    <option value="Blockchain">Blockchain</option>
-                    <option value="Language">Language</option>
-                    <option value="Framework">Framework</option>
-                    <option value="Protocol">Protocol</option>
-                    <option value="Tool">Tool</option>
-                    <option value="Storage">Storage</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
+              <div class="f-group">
+                <label for="techName">Technology Name *</label>
+                <input type="text" id="techName" placeholder="e.g. Ethereum, Solana, Rust, IPFS…" required>
               </div>
               <div class="f-actions">
                 <button type="submit" class="btn btn-primary" id="techSubmitBtn">
@@ -354,19 +407,24 @@
                   </svg>
                   <span id="techSubmitTxt">Add Technology</span>
                 </button>
+                <button type="button" id="techCancelBtn" class="btn btn-ghost" style="display:none;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                  Cancel
+                </button>
               </div>
             </form>
           </div>
         </div>
 
-        <!-- Tech List Card -->
         <div class="card">
           <div class="card-top">
             <div class="card-ttl">
               <svg class="card-ttl-ico cyan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
               </svg>
-              Technology List
+              All Technologies
             </div>
             <div class="tbar">
               <div class="srch">
@@ -381,7 +439,7 @@
             <table class="dtbl">
               <thead>
                 <tr>
-                  <th>Technology Name</th><th>Category</th><th>Actions</th>
+                  <th style="width:100%">Technology Name</th><th>Actions</th>
                 </tr>
               </thead>
               <tbody id="techTbody"></tbody>
@@ -401,8 +459,6 @@
 
       <!-- ==================== PROJECT MASTER SECTION ==================== -->
       <div id="projectSection" class="page-section">
-
-        <!-- Project Form Card -->
         <div class="card">
           <div class="card-top">
             <div class="card-ttl">
@@ -414,6 +470,8 @@
           </div>
           <div class="card-body">
             <form id="projectForm" autocomplete="off">
+
+              <!-- Row 1: Name + Category (dynamic from Category Master) -->
               <div class="f-grid2">
                 <div class="f-group">
                   <label for="projectName">Project Name *</label>
@@ -423,72 +481,40 @@
                   <label for="projectCategory">Category *</label>
                   <select id="projectCategory" required>
                     <option value="">Select Category</option>
-                    <option value="defi">DeFi</option>
-                    <option value="nft">NFT</option>
-                    <option value="enterprise">Enterprise</option>
-                    <option value="web3">Web3</option>
-                    <option value="ai">AI + Blockchain</option>
-                    <option value="security">Security</option>
+                    <!-- Populated dynamically from Category Master -->
                   </select>
                 </div>
               </div>
 
+              <!-- Row 2: Technologies (dynamic multi-select) + Year (same row, side by side) -->
+              <div class="f-grid2">
+                <div class="f-group" style="position:relative;">
+                  <label>Technologies Used</label>
+                  <div class="tags-input-wrap" id="techTagsWrap" onclick="document.getElementById('techTagsInput').focus()">
+                    <div id="selectedTechTags"></div>
+                    <input type="text" id="techTagsInput" class="tags-input-inner" placeholder="Type or select technologies…" autocomplete="off">
+                  </div>
+                  <div class="tech-dropdown" id="techDropdown"></div>
+                </div>
+                <div class="f-group">
+                  <label for="projectYear">Year *</label>
+                  <input type="number" id="projectYear" placeholder="e.g. 2024" min="2000" max="2099" required>
+                </div>
+              </div>
+
+              <!-- Short Description -->
               <div class="f-group">
                 <label for="projectDescription">Short Description *</label>
                 <textarea id="projectDescription" rows="3" placeholder="Brief project overview shown in cards…" required></textarea>
               </div>
 
+              <!-- Full Details -->
               <div class="f-group">
                 <label for="projectDetails">Full Project Details *</label>
                 <textarea id="projectDetails" rows="8" placeholder="Detailed description shown in popup view…" required></textarea>
               </div>
 
-              <!-- Technologies multi-select -->
-              <div class="f-group" style="position:relative;">
-                <label>Technologies Used</label>
-                <div class="tags-input-wrap" id="techTagsWrap" onclick="document.getElementById('techTagsInput').focus()">
-                  <div id="selectedTechTags"></div>
-                  <input type="text" id="techTagsInput" class="tags-input-inner" placeholder="Type or select technologies…" autocomplete="off">
-                </div>
-                <div class="tech-dropdown" id="techDropdown"></div>
-              </div>
-
-              <!-- Stats -->
-              <div class="f-grid2">
-                <div class="f-group">
-                  <label for="projectStat1Label">Stat 1 Label</label>
-                  <input type="text" id="projectStat1Label" placeholder="e.g. Total Value Locked">
-                </div>
-                <div class="f-group">
-                  <label for="projectStat1Value">Stat 1 Value</label>
-                  <input type="text" id="projectStat1Value" placeholder="e.g. $50M+">
-                </div>
-              </div>
-              <div class="f-grid2">
-                <div class="f-group">
-                  <label for="projectStat2Label">Stat 2 Label</label>
-                  <input type="text" id="projectStat2Label" placeholder="e.g. Active Users">
-                </div>
-                <div class="f-group">
-                  <label for="projectStat2Value">Stat 2 Value</label>
-                  <input type="text" id="projectStat2Value" placeholder="e.g. 100K+">
-                </div>
-              </div>
-
-              <div class="f-grid2">
-                <div class="f-group">
-                  <label for="projectYear">Year *</label>
-                  <input type="number" id="projectYear" placeholder="e.g. 2024" min="2000" max="2099" required>
-                </div>
-                <div class="f-group">
-                  <label for="projectFeatured">Featured</label>
-                  <select id="projectFeatured">
-                    <option value="no">No</option>
-                    <option value="yes">Yes — Featured</option>
-                  </select>
-                </div>
-              </div>
-
+              <!-- Image -->
               <div class="f-group">
                 <label>Project Image <span style="font-size:.72rem;color:var(--t3);text-transform:none;letter-spacing:0;font-weight:400;margin-left:.4rem;">— auto-compressed to ≤ 500 KB</span></label>
                 <div class="file-zone" id="projFileZone">
@@ -525,7 +551,6 @@
           </div>
         </div>
 
-        <!-- Project Table Card -->
         <div class="card">
           <div class="card-top">
             <div class="card-ttl">
@@ -549,7 +574,7 @@
               <thead>
                 <tr>
                   <th>Image</th><th>Project Name</th><th>Category</th>
-                  <th>Technologies</th><th>Year</th><th>Featured</th><th>Actions</th>
+                  <th>Technologies</th><th>Year</th><th>Actions</th>
                 </tr>
               </thead>
               <tbody id="projectTbody"></tbody>
@@ -572,7 +597,7 @@
   </div><!-- /main -->
 </div><!-- /admin-wrap -->
 
-<!-- DELETE MODAL (shared) -->
+<!-- DELETE MODAL -->
 <div class="modal-bg" id="deleteModal">
   <div class="modal-box">
     <div class="modal-hd">

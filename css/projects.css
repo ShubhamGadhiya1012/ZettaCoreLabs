@@ -1,6 +1,6 @@
 /* =================================
    PROJECT PAGE STYLES
-   Dynamic · Firebase · Filter Chips
+   Dynamic · Firebase · Filter Chips · No Stats
 ================================= */
 
 :root {
@@ -80,7 +80,6 @@
 
 .filter-chip.active::before { opacity: 1; }
 
-/* Count badge on chip */
 .chip-count {
     display: inline-flex;
     align-items: center;
@@ -120,6 +119,8 @@
     cursor: pointer;
     animation: cardFadeIn 0.5s ease both;
     position: relative;
+    display: flex;
+    flex-direction: column;
 }
 
 @keyframes cardFadeIn {
@@ -146,15 +147,8 @@
     box-shadow: 0 20px 50px rgba(124, 58, 237, 0.2);
 }
 
-/* Hidden state for filtering */
 .project-card.hidden {
     display: none;
-}
-
-.project-card.fade-out {
-    opacity: 0;
-    transform: scale(0.95);
-    transition: opacity 0.2s, transform 0.2s;
 }
 
 /* =================================
@@ -165,6 +159,7 @@
     position: relative;
     overflow: hidden;
     background: linear-gradient(135deg, rgba(124, 58, 237, 0.25), rgba(109, 40, 217, 0.15));
+    flex-shrink: 0;
 }
 
 .project-image::after {
@@ -206,6 +201,9 @@
 ================================= */
 .project-content {
     padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
 }
 
 .project-tags {
@@ -245,49 +243,19 @@
     line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    flex: 1;
 }
 
 /* =================================
-   PROJECT STATS
-================================= */
-.project-stats {
-    display: flex;
-    gap: 1.5rem;
-    margin-bottom: 1.25rem;
-    padding: 1rem 0;
-    border-top: 1px solid var(--border-color);
-    border-bottom: 1px solid var(--border-color);
-}
-
-.project-stat { flex: 1; }
-
-.stat-value {
-    display: block;
-    font-size: 1.35rem;
-    font-weight: 800;
-    background: linear-gradient(135deg, var(--primary-purple-light), #06b6d4);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 0.2rem;
-    line-height: 1.1;
-}
-
-.stat-label {
-    font-size: 0.72rem;
-    color: var(--text-muted);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-}
-
-/* =================================
-   PROJECT FOOTER
+   PROJECT FOOTER (no stats)
 ================================= */
 .project-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+    margin-top: auto;
 }
 
 .project-year {
@@ -339,7 +307,7 @@
 .project-view-btn:hover svg { transform: translateX(2px); }
 
 /* =================================
-   PROJECT DETAIL MODAL
+   PROJECT DETAIL MODAL (no stats)
 ================================= */
 .project-modal {
     position: fixed;
@@ -382,7 +350,6 @@
     transform: scale(1) translateY(0);
 }
 
-/* Modal close */
 .project-modal-close {
     position: absolute;
     top: 1.25rem;
@@ -408,7 +375,6 @@
 
 .project-modal-close svg { width: 18px; height: 18px; }
 
-/* Modal image panel */
 .project-modal-image {
     position: relative;
     overflow: hidden;
@@ -438,7 +404,6 @@
     color: rgba(124, 58, 237, 0.35);
 }
 
-/* Modal body */
 .project-modal-body {
     padding: 2.5rem;
     overflow-y: auto;
@@ -483,7 +448,6 @@
     letter-spacing: -0.02em;
 }
 
-/* Technologies in modal */
 .project-modal-techs {
     display: flex;
     flex-wrap: wrap;
@@ -503,42 +467,6 @@
     color: #a78bfa;
 }
 
-/* Stats in modal */
-.project-modal-stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-}
-
-.modal-stat-card {
-    background: rgba(124, 58, 237, 0.06);
-    border: 1px solid rgba(124, 58, 237, 0.15);
-    border-radius: 14px;
-    padding: 1rem;
-    text-align: center;
-}
-
-.modal-stat-value {
-    display: block;
-    font-size: 1.75rem;
-    font-weight: 800;
-    background: linear-gradient(135deg, #a78bfa, #06b6d4);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 0.25rem;
-}
-
-.modal-stat-label {
-    font-size: 0.72rem;
-    color: var(--text-muted);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-/* Modal content text */
 .project-modal-details {
     color: var(--text-secondary);
     line-height: 1.8;
@@ -548,9 +476,11 @@
 .project-modal-details p { margin-bottom: 1.25rem; }
 .project-modal-details h2 { font-size: 1.4rem; color: var(--text-primary); margin: 1.75rem 0 0.75rem; }
 .project-modal-details h3 { font-size: 1.2rem; color: var(--text-primary); margin: 1.5rem 0 0.6rem; }
+.project-modal-details ul { padding-left: 1.5rem; margin-bottom: 1.25rem; }
+.project-modal-details li { margin-bottom: 0.5rem; }
 
 /* =================================
-   LOADING STATE
+   LOADING & EMPTY STATES
 ================================= */
 .projects-loading {
     padding: 5rem 2rem;
@@ -570,9 +500,6 @@
 
 @keyframes projSpin { to { transform: rotate(360deg); } }
 
-/* =================================
-   EMPTY STATE
-================================= */
 .projects-empty {
     grid-column: 1 / -1;
     padding: 5rem 2rem;
@@ -630,20 +557,11 @@
     .project-modal-title {
         font-size: 1.6rem;
     }
-
-    .project-modal-stats {
-        grid-template-columns: 1fr 1fr;
-    }
 }
 
 @media (max-width: 480px) {
     .filter-chips { gap: 0.5rem; }
     .filter-chip { padding: 0.4rem 0.875rem; font-size: 0.8rem; }
-
     .project-modal-body { padding: 1.5rem 1.25rem; }
     .project-modal-title { font-size: 1.35rem; }
-
-    .project-modal-stats {
-        grid-template-columns: 1fr;
-    }
 }

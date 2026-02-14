@@ -1,6 +1,6 @@
 // ============================================
 // ZETTACORELAB ADMIN — admin.js
-// Blog · Technology Master · Project Master
+// Blog · Category Master · Technology Master · Project Master
 // ============================================
 'use strict';
 
@@ -9,19 +9,21 @@ const ADMIN_PASS = 'Admin@123';
 
 // ---- State ----
 let blogs            = [];
+let categoryList     = [];
 let techList         = [];
 let projects         = [];
 let editingBlogId    = null;
+let editingCategoryId= null;
 let editingTechId    = null;
 let editingProjectId = null;
 let deleteTarget     = null;
-let deleteType       = null; // 'blog' | 'tech' | 'project'
+let deleteType       = null; // 'blog' | 'category' | 'tech' | 'project'
 let dp               = null;
 let sbExpanded       = true;
 let compressedB64Blog    = null;
 let compressedB64Project = null;
 let formBound        = false;
-let selectedTechs    = []; // for project tech multi-select
+let selectedTechs    = [];
 
 // ============================================
 // IMAGE COMPRESSION (≤ 500 KB)
@@ -186,8 +188,9 @@ function initPanel() {
   document.getElementById('sidebar')?.classList.add('open');
   document.getElementById('mainArea')?.classList.add('shifted');
   if (!dp) dp = new Datepicker();
-  if (!formBound) { bindBlogForm(); bindTechForm(); bindProjectForm(); formBound = true; }
+  if (!formBound) { bindBlogForm(); bindCategoryForm(); bindTechForm(); bindProjectForm(); formBound = true; }
   loadBlogs();
+  loadCategoryList();
   loadTechList();
   loadProjects();
 }
@@ -217,30 +220,20 @@ function bindSidebar() {
     main?.classList.toggle('shifted', sbExpanded);
   }
 
-  // Section navigation
   document.querySelectorAll('.sb-item[data-section]').forEach(item => {
     item.addEventListener('click', e => {
       e.preventDefault();
       const sectionId = item.dataset.section;
       const title = item.querySelector('.sb-lbl')?.textContent || '';
-
-      // Update active nav item
       document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
       item.classList.add('active');
-
-      // Switch section
       document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
       document.getElementById(sectionId)?.classList.add('active');
-
-      // Update topbar title
       document.getElementById('pageTitle').textContent = title;
-
-      // Close mobile
       closeMobile();
     });
   });
 
-  // Logout
   document.getElementById('logoutBtn')?.addEventListener('click', e => {
     e.preventDefault();
     sessionStorage.removeItem('adminLoggedIn');
@@ -251,7 +244,7 @@ function bindSidebar() {
 }
 
 // ============================================
-// DRAG & DROP (Blog)
+// DRAG & DROP
 // ============================================
 function bindDragDrop() {
   bindZoneDrop('fileZone', 'blogImage', file => processImageFor(file, 'blog'));
@@ -292,11 +285,9 @@ async function processImageFor(file, target) {
   const img     = document.getElementById(imgId);
   const meta    = document.getElementById(metaId);
   if (!prev || !img) return;
-
   prev.classList.add('show');
   img.style.opacity = '0.3';
   meta.innerHTML = '<span>⏳ Compressing…</span>';
-
   try {
     const r = await compressImage(file);
     if (target === 'blog') compressedB64Blog = r.base64;
@@ -317,7 +308,6 @@ async function processImageFor(file, target) {
 async function saveBlog() {
   const btn = document.getElementById('submitBtn');
   const txt = document.getElementById('submitTxt');
-  const orig = txt.textContent;
   btn.disabled = true;
   txt.innerHTML = '<span class="spin"></span>&nbsp;Saving…';
   try {
@@ -391,7 +381,7 @@ function renderBlogTable(list) {
       ? `<img class="thumb" src="${b.imageUrl}" alt="" loading="lazy" onerror="this.style.display='none'">`
       : `<div class="thumb-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>`;
     const feat = b.featured === 'yes'
-      ? `<span class="badge badge-feat"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> Featured</span>`
+      ? `<span class="badge badge-feat"><svg viewBox="0 0 24 24" fill="currentColor" style="width:10px;height:10px;"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> Featured</span>`
       : `<span style="color:var(--t3)">—</span>`;
     return `<tr>
       <td>${thumb}</td>
@@ -428,11 +418,142 @@ window.editBlog = function(id) {
   document.getElementById('formTitle').textContent = 'Edit Blog Post';
   document.getElementById('submitTxt').textContent = 'Update Blog Post';
   document.getElementById('cancelBtn').style.display = 'inline-flex';
-
-  // Switch to blog section
   switchSection('blogSection', 'navBlog', 'Blog Management');
   document.getElementById('blogForm')?.scrollIntoView({ behavior:'smooth', block:'start' });
 };
+
+// ============================================
+// CATEGORY MASTER
+// ============================================
+function bindCategoryForm() {
+  document.getElementById('categoryForm')?.addEventListener('submit', async e => {
+    e.preventDefault();
+    await saveCategory();
+  });
+  document.getElementById('categoryCancelBtn')?.addEventListener('click', resetCategoryForm);
+}
+
+async function saveCategory() {
+  const btn = document.getElementById('categorySubmitBtn');
+  const txt = document.getElementById('categorySubmitTxt');
+  btn.disabled = true;
+  txt.innerHTML = '<span class="spin"></span>&nbsp;Saving…';
+
+  const name = val('categoryName');
+  if (!name) {
+    toast('Category name is required', 'err');
+    btn.disabled = false;
+    txt.textContent = editingCategoryId ? 'Update Category' : 'Add Category';
+    return;
+  }
+
+  try {
+    const data = {
+      name,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    if (editingCategoryId) {
+      await db.collection('categories').doc(editingCategoryId).update(data);
+      toast('Category updated!', 'ok');
+    } else {
+      data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection('categories').add(data);
+      toast('Category added!', 'ok');
+    }
+    resetCategoryForm();
+    await loadCategoryList(true);
+  } catch (e) {
+    toast('Save error: ' + e.message, 'err');
+    txt.textContent = editingCategoryId ? 'Update Category' : 'Add Category';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function resetCategoryForm() {
+  document.getElementById('categoryForm')?.reset();
+  editingCategoryId = null;
+  document.getElementById('categoryFormTitle').textContent = 'Add New Category';
+  document.getElementById('categorySubmitTxt').textContent = 'Add Category';
+  document.getElementById('categoryCancelBtn').style.display = 'none';
+}
+
+async function loadCategoryList(showError = false) {
+  try {
+    const snap = await db.collection('categories').orderBy('name','asc').get();
+    categoryList = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderCategoryTable(categoryList);
+    buildBlogCategoryDropdown();
+    buildProjectCategoryDropdown();
+  } catch (e) {
+    if (showError) toast('Category load error: ' + e.message, 'err');
+    categoryList = [];
+    renderCategoryTable([]);
+    buildBlogCategoryDropdown();
+    buildProjectCategoryDropdown();
+  }
+}
+
+function renderCategoryTable(list) {
+  const tbody = document.getElementById('categoryTbody');
+  const empty = document.getElementById('emptyCategoryState');
+  if (!tbody || !empty) return;
+  if (!list.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = list.map(c => `
+    <tr>
+      <td style="font-weight:600;font-size:.95rem;">${esc(c.name)}</td>
+      <td><div class="act-cell">
+        <button class="ibtn edit" onclick="editCategory('${c.id}')" title="Edit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+        </button>
+        <button class="ibtn del" onclick="openDelete('${c.id}','category')" title="Delete">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+        </button>
+      </div></td>
+    </tr>
+  `).join('');
+}
+
+window.editCategory = function(id) {
+  const c = categoryList.find(x => x.id === id);
+  if (!c) return;
+  editingCategoryId = id;
+  document.getElementById('categoryName').value = c.name;
+  document.getElementById('categoryFormTitle').textContent = 'Edit Category';
+  document.getElementById('categorySubmitTxt').textContent = 'Update Category';
+  document.getElementById('categoryCancelBtn').style.display = 'inline-flex';
+  switchSection('categoryMasterSection', 'navCategoryMaster', 'Category Master');
+  document.getElementById('categoryForm')?.scrollIntoView({ behavior:'smooth', block:'start' });
+};
+
+function buildBlogCategoryDropdown() {
+  const sel = document.getElementById('blogCategory');
+  if (!sel) return;
+  const currentVal = sel.value;
+  sel.innerHTML = '<option value="">Select Category</option>';
+  categoryList.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.name;
+    opt.textContent = c.name;
+    sel.appendChild(opt);
+  });
+  if (currentVal) sel.value = currentVal;
+}
+
+function buildProjectCategoryDropdown() {
+  const sel = document.getElementById('projectCategory');
+  if (!sel) return;
+  const currentVal = sel.value;
+  sel.innerHTML = '<option value="">Select Category</option>';
+  categoryList.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.name;
+    opt.textContent = c.name;
+    sel.appendChild(opt);
+  });
+  if (currentVal) sel.value = currentVal;
+}
 
 // ============================================
 // TECHNOLOGY MASTER
@@ -442,6 +563,7 @@ function bindTechForm() {
     e.preventDefault();
     await saveTech();
   });
+  document.getElementById('techCancelBtn')?.addEventListener('click', resetTechForm);
 }
 
 async function saveTech() {
@@ -450,7 +572,6 @@ async function saveTech() {
   btn.disabled = true;
   txt.innerHTML = '<span class="spin"></span>&nbsp;Saving…';
 
-  // Validate first — before touching Firestore
   const name = val('techName');
   if (!name) {
     toast('Technology name is required', 'err');
@@ -462,7 +583,6 @@ async function saveTech() {
   try {
     const data = {
       name,
-      category: val('techCategory'),
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
     if (editingTechId) {
@@ -474,9 +594,7 @@ async function saveTech() {
       await db.collection('technologies').add(data);
       toast('Technology added!', 'ok');
     }
-    document.getElementById('techForm')?.reset();
-    txt.textContent = 'Add Technology';
-    // loadTechList already calls buildTechDropdown internally — no duplicate call needed
+    resetTechForm();
     await loadTechList(true);
   } catch (e) {
     toast('Save error: ' + e.message, 'err');
@@ -486,6 +604,14 @@ async function saveTech() {
   }
 }
 
+function resetTechForm() {
+  document.getElementById('techForm')?.reset();
+  editingTechId = null;
+  document.getElementById('techFormTitle').textContent = 'Add New Technology';
+  document.getElementById('techSubmitTxt').textContent = 'Add Technology';
+  document.getElementById('techCancelBtn').style.display = 'none';
+}
+
 async function loadTechList(showError = false) {
   try {
     const snap = await db.collection('technologies').orderBy('name','asc').get();
@@ -493,7 +619,6 @@ async function loadTechList(showError = false) {
     renderTechTable(techList);
     buildTechDropdown();
   } catch (e) {
-    // Only show error toast when user explicitly triggered the action, not on background init
     if (showError) toast('Tech load error: ' + e.message, 'err');
     techList = [];
     renderTechTable([]);
@@ -509,8 +634,7 @@ function renderTechTable(list) {
   empty.style.display = 'none';
   tbody.innerHTML = list.map(t => `
     <tr>
-      <td style="font-weight:600">${esc(t.name)}</td>
-      <td><span class="badge badge-tech">${esc(t.category)}</span></td>
+      <td style="font-weight:600;font-size:.95rem;">${esc(t.name)}</td>
       <td><div class="act-cell">
         <button class="ibtn edit" onclick="editTech('${t.id}')" title="Edit">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
@@ -528,8 +652,9 @@ window.editTech = function(id) {
   if (!t) return;
   editingTechId = id;
   document.getElementById('techName').value = t.name;
-  document.getElementById('techCategory').value = t.category;
+  document.getElementById('techFormTitle').textContent = 'Edit Technology';
   document.getElementById('techSubmitTxt').textContent = 'Update Technology';
+  document.getElementById('techCancelBtn').style.display = 'inline-flex';
   switchSection('techMasterSection', 'navTechMaster', 'Technology Master');
   document.getElementById('techForm')?.scrollIntoView({ behavior:'smooth', block:'start' });
 };
@@ -548,14 +673,13 @@ function bindProjectForm() {
   });
   document.getElementById('projectCancelBtn')?.addEventListener('click', resetProjectForm);
 
-  // Tech tags input
   const input = document.getElementById('techTagsInput');
   const dropdown = document.getElementById('techDropdown');
 
   input?.addEventListener('input', () => {
     const q = input.value.toLowerCase();
     renderTechDropdown(q);
-    dropdown.classList.toggle('show', q.length > 0 || document.activeElement === input);
+    dropdown.classList.toggle('show', true);
   });
 
   input?.addEventListener('focus', () => {
@@ -565,7 +689,7 @@ function bindProjectForm() {
 
   document.addEventListener('click', e => {
     if (!document.getElementById('techTagsWrap')?.contains(e.target)) {
-      dropdown.classList.remove('show');
+      dropdown?.classList.remove('show');
     }
   });
 }
@@ -587,7 +711,6 @@ function renderTechDropdown(query) {
   dropdown.innerHTML = filtered.map(t => `
     <div class="tech-dropdown-item" onclick="selectTech('${esc(t.name)}')">
       <span>${esc(t.name)}</span>
-      <span style="color:var(--t3);font-size:.75rem;margin-left:auto">${esc(t.category)}</span>
     </div>
   `).join('');
 }
@@ -622,7 +745,6 @@ function renderTechTags() {
 async function saveProject() {
   const btn = document.getElementById('projectSubmitBtn');
   const txt = document.getElementById('projectSubmitTxt');
-  const orig = txt.textContent;
   btn.disabled = true;
   txt.innerHTML = '<span class="spin"></span>&nbsp;Saving…';
   try {
@@ -632,12 +754,7 @@ async function saveProject() {
       description: val('projectDescription'),
       details:     val('projectDetails'),
       technologies: [...selectedTechs],
-      stat1Label:  val('projectStat1Label'),
-      stat1Value:  val('projectStat1Value'),
-      stat2Label:  val('projectStat2Label'),
-      stat2Value:  val('projectStat2Value'),
       year:        val('projectYear'),
-      featured:    val('projectFeatured'),
       updatedAt:   firebase.firestore.FieldValue.serverTimestamp()
     };
     if (compressedB64Project) data.imageUrl = compressedB64Project;
@@ -694,17 +811,13 @@ function renderProjectTable(list) {
     const thumb = p.imageUrl
       ? `<img class="thumb" src="${p.imageUrl}" alt="" loading="lazy" onerror="this.style.display='none'">`
       : `<div class="thumb-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>`;
-    const feat = p.featured === 'yes'
-      ? `<span class="badge badge-feat">Featured</span>`
-      : `<span style="color:var(--t3)">—</span>`;
     const techs = (p.technologies || []).slice(0, 3).map(t => `<span class="badge badge-tech" style="margin-right:2px;margin-bottom:2px">${esc(t)}</span>`).join('');
     return `<tr>
       <td>${thumb}</td>
       <td class="ttl-cell" title="${esc(p.name)}">${esc(p.name)}</td>
-      <td><span class="badge badge-cat">${esc(p.category?.toUpperCase())}</span></td>
-      <td style="max-width:160px">${techs}</td>
+      <td><span class="badge badge-cat">${esc(p.category)}</span></td>
+      <td style="max-width:180px">${techs}</td>
       <td style="color:var(--t2)">${esc(p.year)}</td>
-      <td>${feat}</td>
       <td><div class="act-cell">
         <button class="ibtn edit" onclick="editProject('${p.id}')" title="Edit">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
@@ -723,8 +836,7 @@ window.editProject = function(id) {
   editingProjectId = id; compressedB64Project = null;
   const mapped = {
     projectName:'name', projectCategory:'category', projectDescription:'description',
-    projectDetails:'details', projectStat1Label:'stat1Label', projectStat1Value:'stat1Value',
-    projectStat2Label:'stat2Label', projectStat2Value:'stat2Value', projectYear:'year', projectFeatured:'featured'
+    projectDetails:'details', projectYear:'year'
   };
   Object.entries(mapped).forEach(([fid, key]) => {
     const el = document.getElementById(fid);
@@ -746,12 +858,12 @@ window.editProject = function(id) {
 };
 
 // ============================================
-// DELETE (shared)
+// DELETE (shared) — FIXED: instant UI update
 // ============================================
 window.openDelete = function(id, type) {
   deleteTarget = id;
   deleteType = type;
-  const titles = { blog:'Delete Blog Post', tech:'Delete Technology', project:'Delete Project' };
+  const titles = { blog:'Delete Blog Post', category:'Delete Category', tech:'Delete Technology', project:'Delete Project' };
   document.getElementById('deleteModalTitle').textContent = titles[type] || 'Confirm Delete';
   document.getElementById('deleteModal').classList.add('show');
 };
@@ -759,15 +871,39 @@ window.openDelete = function(id, type) {
 function bindModal() {
   document.getElementById('confirmDelete')?.addEventListener('click', async () => {
     if (!deleteTarget || !deleteType) return;
+    const confirmBtn = document.getElementById('confirmDelete');
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = '<span class="spin"></span>&nbsp;Deleting…';
     try {
-      const collMap = { blog:'blogs', tech:'technologies', project:'projects' };
+      const collMap = { blog:'blogs', category:'categories', tech:'technologies', project:'projects' };
       await db.collection(collMap[deleteType]).doc(deleteTarget).delete();
       toast('Deleted successfully', 'ok');
       closeModal();
-      if (deleteType === 'blog') await loadBlogs(true);
-      if (deleteType === 'tech') await loadTechList(true);
-      if (deleteType === 'project') await loadProjects(true);
-    } catch (e) { toast('Delete failed: ' + e.message, 'err'); }
+      // Immediately remove from local array and re-render (no wait for Firestore)
+      if (deleteType === 'blog') {
+        blogs = blogs.filter(x => x.id !== deleteTarget);
+        renderBlogTable(blogs);
+      }
+      if (deleteType === 'category') {
+        categoryList = categoryList.filter(x => x.id !== deleteTarget);
+        renderCategoryTable(categoryList);
+        buildBlogCategoryDropdown();
+        buildProjectCategoryDropdown();
+      }
+      if (deleteType === 'tech') {
+        techList = techList.filter(x => x.id !== deleteTarget);
+        renderTechTable(techList);
+        buildTechDropdown();
+      }
+      if (deleteType === 'project') {
+        projects = projects.filter(x => x.id !== deleteTarget);
+        renderProjectTable(projects);
+      }
+    } catch (e) {
+      toast('Delete failed: ' + e.message, 'err');
+      confirmBtn.disabled = false;
+      confirmBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg> Delete`;
+    }
   });
   document.getElementById('cancelDelete')?.addEventListener('click', closeModal);
   document.getElementById('modalClose')?.addEventListener('click', closeModal);
@@ -778,6 +914,11 @@ function bindModal() {
 
 function closeModal() {
   document.getElementById('deleteModal').classList.remove('show');
+  const confirmBtn = document.getElementById('confirmDelete');
+  if (confirmBtn) {
+    confirmBtn.disabled = false;
+    confirmBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg> Delete`;
+  }
   deleteTarget = null; deleteType = null;
 }
 
@@ -791,10 +932,16 @@ function bindSearchAll() {
       [b.title, b.category, b.author, b.excerpt].some(f => f?.toLowerCase().includes(q))
     ));
   });
+  document.getElementById('searchCategories')?.addEventListener('input', e => {
+    const q = e.target.value.toLowerCase().trim();
+    renderCategoryTable(!q ? categoryList : categoryList.filter(c =>
+      c.name?.toLowerCase().includes(q)
+    ));
+  });
   document.getElementById('searchTech')?.addEventListener('input', e => {
     const q = e.target.value.toLowerCase().trim();
     renderTechTable(!q ? techList : techList.filter(t =>
-      [t.name, t.category].some(f => f?.toLowerCase().includes(q))
+      t.name?.toLowerCase().includes(q)
     ));
   });
   document.getElementById('searchProjects')?.addEventListener('input', e => {
@@ -844,4 +991,4 @@ function toast(msg, type = 'ok') {
   setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 300); }, 3500);
 }
 
-console.log('✅ ZettaCoreLab admin.js loaded — Blog + Tech Master + Project Master');
+console.log('✅ ZettaCoreLab admin.js loaded — Blog + Category Master + Tech Master + Project Master');
