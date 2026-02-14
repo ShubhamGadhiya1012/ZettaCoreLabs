@@ -5,6 +5,38 @@
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
-    ]
+    ],
+    "rewrites": [
+      {
+        "source": "/",
+        "destination": "/index.html"
+      },
+      {
+        "source": "/about",
+        "destination": "/about.html"
+      },
+      {
+        "source": "/services",
+        "destination": "/services.html"
+      },
+      {
+        "source": "/projects",
+        "destination": "/projects.html"
+      },
+      {
+        "source": "/blogs",
+        "destination": "/blogs.html"
+      },
+      {
+        "source": "/contact",
+        "destination": "/contact.html"
+      },
+      {
+        "source": "/admin",
+        "destination": "/admin.html"
+      }
+    ],
+    "cleanUrls": true,
+    "trailingSlash": false
   }
 }
