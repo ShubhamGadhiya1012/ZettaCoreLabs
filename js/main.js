@@ -5,6 +5,111 @@ let scene, camera, renderer, blockchainGroup;
 let animationId;
 
 // =================================
+// PAGE LOAD WITH SVG LOGO LOADER
+// =================================
+document.addEventListener('DOMContentLoaded', () => {
+    // Show loader immediately
+    showBlockchainLoader();
+    
+    // Initialize 3D blockchain if on home page
+    if (document.getElementById('blockchain-canvas')) {
+        init3DBlockchain();
+    }
+    
+    // Hide loader after page fully loads and 3D initializes
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            hideBlockchainLoader();
+            
+            // Start hero animations after loader hides
+            if (document.querySelector('.hero-title')) {
+                startHeroAnimations();
+            }
+        }, 800);
+    });
+    
+    // Setup scroll reveal animations
+    setupScrollAnimations();
+    
+    // Load technologies when DOM is ready
+    setTimeout(() => {
+        loadTechnologies();
+    }, 500);
+});
+
+// =================================
+// HERO ANIMATIONS
+// =================================
+function startHeroAnimations() {
+    anime({
+        targets: '.hero-title .line',
+        translateY: [20, 0],
+        opacity: [0, 1],
+        duration: 800,
+        delay: anime.stagger(100, {start: 300}),
+        easing: 'easeOutExpo'
+    });
+    
+    anime({
+        targets: '.hero-description',
+        translateY: [20, 0],
+        opacity: [0, 1],
+        duration: 800,
+        delay: 800,
+        easing: 'easeOutExpo'
+    });
+    
+    anime({
+        targets: '.hero-buttons',
+        translateY: [20, 0],
+        opacity: [0, 1],
+        duration: 800,
+        delay: 1000,
+        easing: 'easeOutExpo'
+    });
+    
+    anime({
+        targets: '.hero-stats',
+        translateY: [20, 0],
+        opacity: [0, 1],
+        duration: 800,
+        delay: 1200,
+        easing: 'easeOutExpo'
+    });
+}
+
+// =================================
+// SCROLL REVEAL ANIMATIONS
+// =================================
+function setupScrollAnimations() {
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                anime({
+                    targets: entry.target,
+                    translateY: [30, 0],
+                    opacity: [0, 1],
+                    duration: 800,
+                    easing: 'easeOutExpo'
+                });
+                observer.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+    
+    // Observe all cards
+    document.querySelectorAll('.feature-card, .service-card-large, .project-card, .blog-card, .value-item, .team-card, .process-step').forEach(card => {
+        card.style.opacity = '0';
+        observer.observe(card);
+    });
+}
+
+// =================================
 // NAVBAR SCROLL BEHAVIOR
 // =================================
 window.addEventListener('scroll', () => {
@@ -245,82 +350,6 @@ function onWindowResize() {
     camera.updateProjectionMatrix();
     renderer.setSize(canvas.clientWidth, canvas.clientHeight);
 }
-
-// =================================
-// PAGE LOAD ANIMATIONS (ANIME.JS)
-// =================================
-document.addEventListener('DOMContentLoaded', () => {
-    // Initialize 3D blockchain if on home page
-    if (document.getElementById('blockchain-canvas')) {
-        init3DBlockchain();
-    }
-    
-    // Hero text animations
-    if (document.querySelector('.hero-title')) {
-        anime({
-            targets: '.hero-title .line',
-            translateY: [20, 0],
-            opacity: [0, 1],
-            duration: 800,
-            delay: anime.stagger(100, {start: 300}),
-            easing: 'easeOutExpo'
-        });
-        
-        anime({
-            targets: '.hero-description',
-            translateY: [20, 0],
-            opacity: [0, 1],
-            duration: 800,
-            delay: 800,
-            easing: 'easeOutExpo'
-        });
-        
-        anime({
-            targets: '.hero-buttons',
-            translateY: [20, 0],
-            opacity: [0, 1],
-            duration: 800,
-            delay: 1000,
-            easing: 'easeOutExpo'
-        });
-        
-        anime({
-            targets: '.hero-stats',
-            translateY: [20, 0],
-            opacity: [0, 1],
-            duration: 800,
-            delay: 1200,
-            easing: 'easeOutExpo'
-        });
-    }
-    
-    // Scroll reveal animations for cards
-    const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-    };
-    
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                anime({
-                    targets: entry.target,
-                    translateY: [30, 0],
-                    opacity: [0, 1],
-                    duration: 800,
-                    easing: 'easeOutExpo'
-                });
-                observer.unobserve(entry.target);
-            }
-        });
-    }, observerOptions);
-    
-    // Observe all cards
-    document.querySelectorAll('.feature-card, .service-card-large, .project-card, .blog-card, .value-item, .team-card, .process-step').forEach(card => {
-        card.style.opacity = '0';
-        observer.observe(card);
-    });
-});
 
 // =================================
 // PROJECT FILTERING
@@ -573,7 +602,6 @@ window.addEventListener('load', () => {
     document.body.classList.add('loaded');
 });
 
-
 // =================================
 // LOAD AND DISPLAY TECHNOLOGIES FROM FIREBASE
 // =================================
@@ -654,10 +682,4 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Load technologies when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    // Wait for Firebase to initialize
-    setTimeout(() => {
-        loadTechnologies();
-    }, 500);
-});
+console.log('✅ main.js with SVG Logo Loader loaded successfully');

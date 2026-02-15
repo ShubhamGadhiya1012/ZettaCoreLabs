@@ -1722,3 +1722,23 @@ body {
         min-width: 120px;
     }
 }
+
+body.loading #navbar,
+body.loading #hero,
+body.loading #features,
+body.loading #technologies,
+body.loading #cta,
+body.loading #footer {
+    opacity: 0;
+    pointer-events: none;
+}
+
+body #navbar,
+body #hero,
+body #features,
+body #technologies,
+body #cta,
+body #footer {
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}

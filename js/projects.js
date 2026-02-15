@@ -1,6 +1,6 @@
 // =================================
 // PROJECTS PAGE — projects.js
-// Firebase · Dynamic Filter Chips · Detail Modal · Blockchain Loader
+// Firebase · Dynamic Filter Chips · Detail Modal · SVG Logo Loader
 // =================================
 'use strict';
 
@@ -8,38 +8,10 @@ let allProjects  = [];
 let activeFilter = 'all';
 
 // =================================
-// BLOCKCHAIN LOADER (same as blogs)
-// =================================
-function showBlockchainLoader() {
-    const existing = document.getElementById('blockchainLoader');
-    if (existing) return;
-    const loader = document.createElement('div');
-    loader.className = 'blockchain-loader-overlay';
-    loader.id = 'blockchainLoader';
-    loader.innerHTML = `
-        <div class="blockchain-loader-container">
-            <div class="loader-spinner">
-                <div class="spinner-ring"></div>
-                <div class="spinner-ring"></div>
-                <div class="spinner-ring"></div>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(loader);
-}
-
-function hideBlockchainLoader() {
-    const loader = document.getElementById('blockchainLoader');
-    if (loader) {
-        loader.classList.add('fade-out');
-        setTimeout(() => loader.remove(), 500);
-    }
-}
-
-// =================================
 // PAGE INIT
 // =================================
 document.addEventListener('DOMContentLoaded', function () {
+    console.log('Projects page loaded with Firebase');
     showBlockchainLoader();
     loadProjectsFromFirestore();
 });
@@ -49,6 +21,8 @@ document.addEventListener('DOMContentLoaded', function () {
 // =================================
 async function loadProjectsFromFirestore() {
     try {
+        console.log('📂 Loading projects from Firestore...');
+        
         const snapshot = await db.collection('projects')
             .orderBy('createdAt', 'desc')
             .get();
@@ -57,15 +31,17 @@ async function loadProjectsFromFirestore() {
             id: doc.id,
             ...doc.data()
         }));
+        
+        console.log('✅ Loaded', allProjects.length, 'projects from Firestore');
 
-        setTimeout(() => {
-            hideBlockchainLoader();
-            buildFilterChips();
-            renderProjects(allProjects);
-        }, 800);
+        // Hide loader immediately when data loads (don't wait for counter)
+        hideBlockchainLoader();
+        
+        buildFilterChips();
+        renderProjects(allProjects);
 
     } catch (error) {
-        console.error('Error loading projects:', error);
+        console.error('❌ Error loading projects:', error);
         hideBlockchainLoader();
         showProjectsEmpty('Error loading projects. Please refresh the page.');
     }
@@ -288,4 +264,4 @@ function showErrNotif(message) {
     setTimeout(() => el.remove(), 3000);
 }
 
-console.log('✅ projects.js with Firebase + Blockchain Loader loaded');
+console.log('✅ projects.js with SVG Logo Loader loaded');

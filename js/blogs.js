@@ -1,37 +1,8 @@
 // =================================
-// BLOG PAGE WITH FIREBASE
+// BLOG PAGE WITH FIREBASE & SVG LOGO LOADER
 // =================================
 
 let allBlogs = [];
-
-// =================================
-// MINIMALIST LOADER FUNCTIONS
-// =================================
-function showBlockchainLoader() {
-    const loader = document.createElement('div');
-    loader.className = 'blockchain-loader-overlay';
-    loader.id = 'blockchainLoader';
-    loader.innerHTML = `
-        <div class="blockchain-loader-container">
-            <div class="loader-spinner">
-                <div class="spinner-ring"></div>
-                <div class="spinner-ring"></div>
-                <div class="spinner-ring"></div>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(loader);
-}
-
-function hideBlockchainLoader() {
-    const loader = document.getElementById('blockchainLoader');
-    if (loader) {
-        loader.classList.add('fade-out');
-        setTimeout(() => {
-            loader.remove();
-        }, 500);
-    }
-}
 
 // =================================
 // LOAD BLOGS ON PAGE LOAD
@@ -61,17 +32,15 @@ async function loadBlogsFromFirestore() {
         
         console.log('✅ Loaded', allBlogs.length, 'blogs from Firestore');
         
-        // Add delay for loader animation
-        setTimeout(() => {
-            hideBlockchainLoader();
-            
-            if (allBlogs.length > 0) {
-                renderFeaturedPost();
-                renderBlogGrid();
-            } else {
-                showEmptyState();
-            }
-        }, 1500);
+        // Hide loader immediately when data is loaded (don't wait for counter)
+        hideBlockchainLoader();
+        
+        if (allBlogs.length > 0) {
+            renderFeaturedPost();
+            renderBlogGrid();
+        } else {
+            showEmptyState();
+        }
         
     } catch (error) {
         console.error('❌ Error loading blogs:', error);
@@ -663,4 +632,4 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-console.log('✅ blogs.js with Minimalist Loader loaded successfully');
+console.log('✅ blogs.js with SVG Logo Loader loaded successfully');
