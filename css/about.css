@@ -344,7 +344,7 @@
 .team-card-dynamic:nth-child(8) { animation-delay: 0.40s; }
 
 /* =================================
-   RESPONSIVE
+   RESPONSIVE (original grid)
 ================================= */
 @media (max-width: 1024px) {
     .team-grid-dynamic {
@@ -369,4 +369,171 @@
     }
 
     .team-card-image-wrap { height: 200px; }
+}
+
+
+/* =================================
+   TEAM SLIDER — NEW STYLES
+   Single row · auto-slide · dots · arrows inside row
+   All original styles above are untouched
+================================= */
+
+/* Outer wrapper */
+.team-slider-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+}
+
+/* Row: [arrow] [viewport] [arrow] */
+.team-slider-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+}
+
+/* Viewport clips the sliding track */
+.team-slider-viewport {
+    flex: 1;
+    overflow: hidden;
+    min-width: 0; /* important — prevents flex overflow */
+}
+
+/* The sliding track */
+.team-slider-track {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 2rem;
+    transition: transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: transform;
+}
+
+/* Cards: fixed width = (viewport - gaps) / visible count */
+/* Desktop ≥1200px: 4 cards */
+.team-slider-track .team-card {
+    flex: 0 0 calc(25% - 1.5rem);
+    min-width: 220px;
+}
+
+/* =================================
+   ARROW BUTTONS — always fully visible
+================================= */
+.team-arrow {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(18, 18, 24, 0.95);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 2;
+}
+
+.team-arrow svg {
+    width: 18px;
+    height: 18px;
+    pointer-events: none;
+}
+
+.team-arrow:hover {
+    background: var(--primary-purple);
+    border-color: var(--primary-purple);
+    color: #fff;
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.45);
+    transform: scale(1.08);
+}
+
+/* =================================
+   DOT NAVIGATION
+================================= */
+.team-slider-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding-top: 0.25rem;
+}
+
+.team-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--border-color);
+    border: 1px solid rgba(124, 58, 237, 0.2);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 0;
+}
+
+.team-dot:hover {
+    background: rgba(124, 58, 237, 0.4);
+}
+
+.team-dot.active {
+    background: var(--primary-purple);
+    border-color: var(--primary-purple);
+    width: 24px;
+    border-radius: 4px;
+    box-shadow: 0 0 10px rgba(124, 58, 237, 0.5);
+}
+
+/* =================================
+   SLIDER RESPONSIVE
+================================= */
+
+/* Tablet landscape: 3 cards */
+@media (max-width: 1199px) {
+    .team-slider-track .team-card {
+        flex: 0 0 calc(33.333% - 1.35rem);
+        min-width: 200px;
+    }
+}
+
+/* Tablet portrait: 2 cards */
+@media (max-width: 899px) {
+    .team-slider-track .team-card {
+        flex: 0 0 calc(50% - 1rem);
+        min-width: 180px;
+    }
+
+    .team-arrow {
+        width: 38px;
+        height: 38px;
+    }
+
+    .team-arrow svg {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+/* Mobile: 1 card */
+@media (max-width: 575px) {
+    .team-slider-track .team-card {
+        flex: 0 0 100%;
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    .team-slider-row {
+        gap: 0.6rem;
+    }
+
+    .team-arrow {
+        width: 36px;
+        height: 36px;
+    }
+
+    .team-slider-track {
+        gap: 1rem;
+    }
 }
