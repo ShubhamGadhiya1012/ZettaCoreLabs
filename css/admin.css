@@ -2563,4 +2563,356 @@ body::before {
     height: 28px;
     font-size: .75rem;
   }
+
+
+}
+
+/* =================================
+   ADMIN CSS ADDITIONS
+   Team Member Master + Service Management
+   Append these rules to your existing admin.css
+================================= */
+
+/* =================================
+   TEAM MEMBER AVATAR PREVIEW
+================================= */
+.avatar-preview-wrap {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin-top: 0.875rem;
+    padding: 0.875rem 1rem;
+    background: var(--bg-input);
+    border: 1px solid var(--border-md);
+    border-radius: 12px;
+}
+
+.avatar-preview-img {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--v-border);
+    background: var(--bg-surface);
+    display: block;
+    flex-shrink: 0;
+    transition: box-shadow 0.2s;
+}
+
+.avatar-preview-img:hover {
+    box-shadow: 0 0 0 4px var(--v-soft);
+}
+
+.avatar-preview-placeholder {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: var(--v-soft);
+    border: 2px dashed var(--v-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--t3);
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    font-family: 'Outfit', sans-serif;
+}
+
+.avatar-preview-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.avatar-preview-info span {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--t2);
+    margin-bottom: 0.25rem;
+}
+
+.avatar-preview-info small {
+    font-size: 0.7rem;
+    color: var(--t3);
+}
+
+/* =================================
+   POINTS BUILDER (Service Feature Points)
+================================= */
+.points-builder {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-bottom: 0.5rem;
+}
+
+.point-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    animation: pointRowIn 0.3s ease;
+}
+
+@keyframes pointRowIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+.point-row-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--v-soft);
+    border: 1px solid var(--v-border);
+    color: var(--v4);
+    font-size: 0.7rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    user-select: none;
+}
+
+.point-input {
+    flex: 1;
+    padding: .65rem .875rem;
+    background: var(--bg-input);
+    border: 1px solid var(--border-md);
+    border-radius: 10px;
+    color: var(--t1);
+    font-size: .875rem;
+    font-family: 'Outfit', sans-serif;
+    transition: all var(--tf);
+}
+
+.point-input::placeholder { color: var(--t3); }
+
+.point-input:focus {
+    outline: none;
+    border-color: var(--v1);
+    box-shadow: 0 0 0 3px var(--v-soft);
+    background: #0b0d22;
+}
+
+.point-del-btn {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(244,63,94,.08);
+    border: 1px solid rgba(244,63,94,.22);
+    border-radius: 8px;
+    color: var(--danger);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all var(--tf);
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.point-del-btn:hover {
+    background: rgba(244,63,94,.18);
+    border-color: rgba(244,63,94,.45);
+}
+
+.point-del-btn svg {
+    width: 13px;
+    height: 13px;
+}
+
+.add-point-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    padding: .5rem .875rem;
+    background: rgba(124,58,237,.06);
+    border: 1.5px dashed rgba(124,58,237,.32);
+    border-radius: 10px;
+    color: var(--v4);
+    font-size: .78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all var(--tf);
+    font-family: 'Outfit', sans-serif;
+    margin-top: .3rem;
+    width: fit-content;
+}
+
+.add-point-btn svg {
+    width: 13px;
+    height: 13px;
+}
+
+.add-point-btn:hover {
+    background: var(--v-soft);
+    border-color: var(--v-border);
+}
+
+.add-point-btn:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+}
+
+.points-meta {
+    font-size: .7rem;
+    color: var(--t3);
+    margin-top: .3rem;
+}
+
+/* =================================
+   SERVICE FORM — ICON SELECTOR
+================================= */
+.svc-icon-picker {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+    gap: .5rem;
+    padding: .75rem;
+    background: var(--bg-input);
+    border: 1px solid var(--border-md);
+    border-radius: 12px;
+    max-height: 120px;
+    overflow-y: auto;
+}
+
+.svc-icon-opt {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: var(--bg-surface);
+    border: 1.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--tf);
+    color: var(--t3);
+}
+
+.svc-icon-opt svg { width: 18px; height: 18px; }
+
+.svc-icon-opt:hover {
+    border-color: var(--v-border);
+    color: var(--v3);
+    background: var(--v-soft);
+}
+
+.svc-icon-opt.selected {
+    border-color: var(--v1);
+    background: var(--v-soft);
+    color: var(--v4);
+    box-shadow: 0 0 0 2px var(--v-soft);
+}
+
+/* =================================
+   TABLE — POINTS PREVIEW CELL
+================================= */
+.points-preview {
+    display: flex;
+    flex-direction: column;
+    gap: .25rem;
+    max-width: 200px;
+}
+
+.points-preview-item {
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+    font-size: .75rem;
+    color: var(--t2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.points-preview-item::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--success);
+    flex-shrink: 0;
+    box-shadow: 0 0 5px var(--success);
+}
+
+.points-preview-more {
+    font-size: .7rem;
+    color: var(--t3);
+    padding-left: .85rem;
+}
+
+/* =================================
+   BADGE — SERVICE ICON
+================================= */
+.svc-icon-cell {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: var(--v-soft);
+    border: 1px solid var(--v-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--v4);
+}
+
+.svc-icon-cell svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* =================================
+   MEMBER CELL — TABLE
+================================= */
+.member-thumb {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--v-border);
+    background: var(--bg-surface);
+    display: block;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.member-thumb:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 16px rgba(124,58,237,.35);
+}
+
+.member-thumb-ph {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--v-soft);
+    border: 2px solid var(--v-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--v4);
+    font-size: .875rem;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+/* =================================
+   RESPONSIVE ADMIN ADDITIONS
+================================= */
+@media(max-width:768px) {
+    .svc-icon-picker {
+        grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+    }
+
+    .avatar-preview-wrap {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.875rem;
+    }
+}
+
+@media(max-width:480px) {
+    .point-row { flex-wrap: nowrap; }
+    .point-input { font-size: .8rem; }
 }

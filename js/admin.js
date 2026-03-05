@@ -1,6 +1,6 @@
 // ============================================
 // ZETTACORELAB ADMIN — admin.js
-// Blog · Category Master · Technology Master · Project Master
+// Blog · Category · Technology · Project · Team Member · Service Management
 // + Year Picker · Pagination (10/page) · Loading States
 // ============================================
 'use strict';
@@ -13,10 +13,14 @@ let blogs             = [];
 let categoryList      = [];
 let techList          = [];
 let projects          = [];
+let teamMembers       = [];
+let services          = [];
 let editingBlogId     = null;
 let editingCategoryId = null;
 let editingTechId     = null;
 let editingProjectId  = null;
+let editingMemberId   = null;
+let editingServiceId  = null;
 let deleteTarget      = null;
 let deleteType        = null;
 let dp                = null;
@@ -24,8 +28,13 @@ let yp                = null;
 let sbExpanded        = true;
 let compressedB64Blog    = null;
 let compressedB64Project = null;
+let compressedB64Member  = null;
 let formBound         = false;
 let selectedTechs     = [];
+let selectedServiceTechs = [];
+let servicePoints     = [];
+const MIN_POINTS = 3;
+const MAX_POINTS = 6;
 
 // ---- Pagination state ----
 const PAGE_SIZE = 10;
@@ -33,6 +42,8 @@ let blogPage    = 1;
 let catPage     = 1;
 let techPage    = 1;
 let projectPage = 1;
+let memberPage  = 1;
+let servicePage = 1;
 
 // ============================================
 // IMAGE COMPRESSION (<=500 KB)
@@ -134,7 +145,7 @@ class Datepicker {
 }
 
 // ============================================
-// YEAR PICKER (Project Master) — Custom popup
+// YEAR PICKER (Project Master)
 // ============================================
 class YearPicker {
   constructor() {
@@ -223,14 +234,10 @@ function buildPagination(containerId, page, pages, total, onPageChange) {
   if (!total) { el.innerHTML=''; return; }
 
   const s = (page-1)*PAGE_SIZE+1, e = Math.min(page*PAGE_SIZE, total);
-  let html = `<div class="pg-info">Showing <strong>${s}–${e}</strong> of <strong>${total}</strong> records</div><div class="pg-btns">`;
-
-  const fnStr = `function(p){${onPageChange.toString().replace(/^.*?{/, '').replace(/}$/, '')}renderBlogTable&&0}`;
-
-  // Build inline handlers using a global helper approach
   const cbKey = '_pgCb_' + containerId;
   window[cbKey] = onPageChange;
 
+  let html = `<div class="pg-info">Showing <strong>${s}–${e}</strong> of <strong>${total}</strong> records</div><div class="pg-btns">`;
   html += `<button class="pg-btn pg-nav${page===1?' disabled':''}" ${page===1?'disabled':''} onclick="window['${cbKey}'](${page-1})">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
   </button>`;
@@ -289,8 +296,12 @@ function initPanel() {
   document.getElementById('mainArea')?.classList.add('shifted');
   if (!dp) dp = new Datepicker();
   if (!yp) yp = new YearPicker();
-  if (!formBound) { bindBlogForm(); bindCategoryForm(); bindTechForm(); bindProjectForm(); formBound=true; }
-  loadBlogs(); loadCategoryList(); loadTechList(); loadProjects();
+  if (!formBound) {
+    bindBlogForm(); bindCategoryForm(); bindTechForm();
+    bindProjectForm(); bindMemberForm(); bindServiceForm();
+    formBound=true;
+  }
+  loadBlogs(); loadCategoryList(); loadTechList(); loadProjects(); loadTeamMembers(); loadServices();
 }
 
 // ============================================
@@ -330,6 +341,7 @@ function bindSidebar() {
 function bindDragDrop() {
   bindZoneDrop('fileZone','blogImage',f=>processImageFor(f,'blog'));
   bindZoneDrop('projFileZone','projectImage',f=>processImageFor(f,'project'));
+  bindZoneDrop('memberFileZone','memberImage',f=>processImageFor(f,'member'));
 }
 function bindZoneDrop(zoneId, inputId, handler) {
   const zone=document.getElementById(zoneId); if(!zone)return;
@@ -347,19 +359,27 @@ function bindBlogForm() {
   document.getElementById('cancelBtn')?.addEventListener('click',resetBlogForm);
 }
 async function processImageFor(file, target) {
-  const prevId=target==='blog'?'imgPrev':'projImgPrev', imgId=target==='blog'?'prevImg':'projPrevImg', metaId=target==='blog'?'prevMeta':'projPrevMeta';
+  const prevId = target==='blog'?'imgPrev': target==='project'?'projImgPrev':'memberImgPrev';
+  const imgId  = target==='blog'?'prevImg':  target==='project'?'projPrevImg':'memberPrevImg';
+  const metaId = target==='blog'?'prevMeta': target==='project'?'projPrevMeta':'memberPrevMeta';
   const prev=document.getElementById(prevId), img=document.getElementById(imgId), meta=document.getElementById(metaId);
   if(!prev||!img)return;
   prev.classList.add('show'); img.style.opacity='0.3'; meta.innerHTML='<span>⏳ Compressing…</span>';
   try {
     const r=await compressImage(file);
-    if(target==='blog') compressedB64Blog=r.base64; else compressedB64Project=r.base64;
+    if(target==='blog') compressedB64Blog=r.base64;
+    else if(target==='project') compressedB64Project=r.base64;
+    else compressedB64Member=r.base64;
     img.src=r.base64; img.style.opacity='1';
     meta.innerHTML=r.compressed
       ?`<span>📦 ${r.origKB} KB → ${r.finalKB} KB</span><span class="ctag">✓ Compressed</span>`
       :`<span>📦 ${r.origKB} KB</span><span class="ctag" style="background:rgba(56,189,248,.1);border-color:rgba(56,189,248,.25);color:var(--info)">✓ Ready</span>`;
+    // Update avatar preview for member
+    if(target==='member') updateMemberAvatarPreview(r.base64);
   } catch(err) {
-    if(target==='blog') compressedB64Blog=null; else compressedB64Project=null;
+    if(target==='blog') compressedB64Blog=null;
+    else if(target==='project') compressedB64Project=null;
+    else compressedB64Member=null;
     prev.classList.remove('show'); toast('Image error: '+err.message,'err');
   }
 }
@@ -523,8 +543,8 @@ async function loadTechList(showError=false){
   try{
     const snap=await db.collection('technologies').orderBy('name','asc').get();
     techList=snap.docs.map(d=>({id:d.id,...d.data()}));
-    techPage=1; renderTechTable(techList); buildTechDropdown();
-  }catch(e){ if(showError)toast('Tech load error: '+e.message,'err'); techList=[]; renderTechTable([]); buildTechDropdown(); }
+    techPage=1; renderTechTable(techList); buildTechDropdown(); buildServiceTechDropdown();
+  }catch(e){ if(showError)toast('Tech load error: '+e.message,'err'); techList=[]; renderTechTable([]); buildTechDropdown(); buildServiceTechDropdown(); }
 }
 function renderTechTable(list){
   const tbody=document.getElementById('techTbody'),empty=document.getElementById('emptyTechState');
@@ -630,8 +650,255 @@ window.editProject=function(id){
   document.getElementById('projectFormTitle').textContent='Edit Project';
   document.getElementById('projectSubmitTxt').textContent='Update Project';
   document.getElementById('projectCancelBtn').style.display='inline-flex';
-  switchSection('projectSection','navProject','Project Master');
+  switchSection('projectSection','navProject','Project Management');
   document.getElementById('projectForm')?.scrollIntoView({behavior:'smooth',block:'start'});
+};
+
+// ============================================
+// TEAM MEMBER MASTER
+// ============================================
+function bindMemberForm(){
+  document.getElementById('memberImage')?.addEventListener('change',e=>{ const f=e.target.files?.[0]; if(f)processImageFor(f,'member'); });
+  document.getElementById('memberForm')?.addEventListener('submit',async e=>{ e.preventDefault(); await saveMember(); });
+  document.getElementById('memberCancelBtn')?.addEventListener('click',resetMemberForm);
+  // Live name → avatar preview
+  document.getElementById('memberName')?.addEventListener('input',()=>{
+    if(!compressedB64Member) updateMemberAvatarPreview(null);
+  });
+}
+function updateMemberAvatarPreview(imgSrc){
+  const ph=document.getElementById('memberAvatarPh');
+  const img=document.getElementById('memberAvatarImg');
+  if(!ph||!img)return;
+  if(imgSrc){
+    img.src=imgSrc; img.style.display='block'; ph.style.display='none';
+  } else {
+    const name=val('memberName');
+    ph.textContent=getInitials(name)||'👤';
+    img.style.display='none'; ph.style.display='flex';
+  }
+}
+function getInitials(name){
+  if(!name)return'';
+  return name.split(' ').map(w=>w[0]||'').join('').toUpperCase().substring(0,2);
+}
+async function saveMember(){
+  const btn=document.getElementById('memberSubmitBtn'),txt=document.getElementById('memberSubmitTxt');
+  btn.disabled=true; txt.innerHTML='<span class="spin"></span>&nbsp;Saving…';
+  const name=val('memberName'),designation=val('memberDesignation'),experience=val('memberExperience');
+  if(!name||!designation||!experience){ toast('Name, designation and experience are required','err'); btn.disabled=false; txt.textContent=editingMemberId?'Update Member':'Add Member'; return; }
+  try{
+    const data={name,designation,experience,updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
+    if(compressedB64Member) data.imageUrl=compressedB64Member;
+    else if(editingMemberId) data.imageUrl=teamMembers.find(m=>m.id===editingMemberId)?.imageUrl||null;
+    if(!editingMemberId) data.createdAt=firebase.firestore.FieldValue.serverTimestamp();
+    if(editingMemberId){ await db.collection('teamMembers').doc(editingMemberId).update(data); toast('Member updated!','ok'); }
+    else{ await db.collection('teamMembers').add(data); toast('Member added!','ok'); }
+    resetMemberForm(); await loadTeamMembers(true);
+  }catch(e){ toast('Error: '+e.message,'err'); txt.textContent=editingMemberId?'Update Member':'Add Member'; }
+  finally{ btn.disabled=false; }
+}
+function resetMemberForm(){
+  document.getElementById('memberForm')?.reset(); compressedB64Member=null; editingMemberId=null;
+  const prev=document.getElementById('memberImgPrev');
+  if(prev){ prev.classList.remove('show'); document.getElementById('memberPrevImg').src=''; document.getElementById('memberPrevMeta').innerHTML=''; }
+  updateMemberAvatarPreview(null);
+  document.getElementById('memberFormTitle').textContent='Add New Team Member';
+  document.getElementById('memberSubmitTxt').textContent='Add Member';
+  document.getElementById('memberCancelBtn').style.display='none';
+}
+async function loadTeamMembers(showError=false){
+  showTableLoader('memberTbody','emptyMemberState',5);
+  try{
+    const snap=await db.collection('teamMembers').orderBy('createdAt','asc').get();
+    teamMembers=snap.docs.map(d=>({id:d.id,...d.data()}));
+    memberPage=1; renderMemberTable(teamMembers);
+  }catch(e){ if(showError)toast('Members load error: '+e.message,'err'); teamMembers=[]; renderMemberTable([]); }
+}
+function renderMemberTable(list){
+  const tbody=document.getElementById('memberTbody'),empty=document.getElementById('emptyMemberState');
+  if(!tbody||!empty)return;
+  if(!list.length){ tbody.innerHTML=''; empty.style.display='block'; document.getElementById('memberPagination').innerHTML=''; return; }
+  empty.style.display='none';
+  const {items,page,pages,total}=paginate(list,memberPage); memberPage=page;
+  tbody.innerHTML=items.map(m=>{
+    const thumb=m.imageUrl
+      ?`<img class="member-thumb" src="${m.imageUrl}" alt="${esc(m.name)}" loading="lazy" onerror="this.outerHTML='<div class=\\'member-thumb-ph\\'>${esc(getInitials(m.name))}</div>'">`
+      :`<div class="member-thumb-ph">${esc(getInitials(m.name))}</div>`;
+    return `<tr>
+      <td>${thumb}</td>
+      <td style="font-weight:700;color:var(--t1)">${esc(m.name)}</td>
+      <td><span class="badge badge-cat">${esc(m.designation)}</span></td>
+      <td style="color:var(--t2)">${esc(m.experience)}</td>
+      <td><div class="act-cell">
+        <button class="ibtn edit" onclick="editMember('${m.id}')" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>
+        <button class="ibtn del" onclick="openDelete('${m.id}','member')" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></button>
+      </div></td>
+    </tr>`;
+  }).join('');
+  buildPagination('memberPagination',page,pages,total,p=>{ memberPage=p; renderMemberTable(list); });
+}
+window.editMember=function(id){
+  const m=teamMembers.find(x=>x.id===id); if(!m)return toast('Member not found','err');
+  editingMemberId=id; compressedB64Member=null;
+  document.getElementById('memberName').value=m.name||'';
+  document.getElementById('memberDesignation').value=m.designation||'';
+  document.getElementById('memberExperience').value=m.experience||'';
+  const prev=document.getElementById('memberImgPrev');
+  if(m.imageUrl&&prev){ document.getElementById('memberPrevImg').src=m.imageUrl; document.getElementById('memberPrevMeta').innerHTML='<span style="color:var(--t2)">Existing image</span>'; prev.classList.add('show'); updateMemberAvatarPreview(m.imageUrl); }
+  else { updateMemberAvatarPreview(null); }
+  document.getElementById('memberFormTitle').textContent='Edit Team Member';
+  document.getElementById('memberSubmitTxt').textContent='Update Member';
+  document.getElementById('memberCancelBtn').style.display='inline-flex';
+  switchSection('teamMemberSection','navTeamMember','Team Member Master');
+  document.getElementById('memberForm')?.scrollIntoView({behavior:'smooth',block:'start'});
+};
+
+// ============================================
+// SERVICE MANAGEMENT
+// ============================================
+function bindServiceForm(){
+  document.getElementById('serviceForm')?.addEventListener('submit',async e=>{ e.preventDefault(); await saveService(); });
+  document.getElementById('serviceCancelBtn')?.addEventListener('click',resetServiceForm);
+  document.getElementById('addPointBtn')?.addEventListener('click',addServicePoint);
+  // Service tech dropdown
+  const input=document.getElementById('serviceTechInput'), dropdown=document.getElementById('serviceTechDropdown');
+  input?.addEventListener('input',()=>{ renderServiceTechDropdown(input.value.toLowerCase()); dropdown.classList.add('show'); });
+  input?.addEventListener('focus',()=>{ renderServiceTechDropdown(input.value.toLowerCase()); dropdown.classList.add('show'); });
+  document.addEventListener('click',e=>{ if(!document.getElementById('serviceTechWrap')?.contains(e.target)) dropdown?.classList.remove('show'); });
+  // Init with 3 points
+  servicePoints=[];
+  for(let i=0;i<MIN_POINTS;i++) addServicePoint();
+}
+function addServicePoint(){
+  if(servicePoints.length>=MAX_POINTS){ toast(`Maximum ${MAX_POINTS} points allowed`,'err'); return; }
+  const id='pt_'+Date.now()+'_'+Math.random().toString(36).substr(2,5);
+  servicePoints.push({id,value:''});
+  renderServicePoints();
+}
+window.removeServicePoint=function(id){
+  if(servicePoints.length<=MIN_POINTS){ toast(`Minimum ${MIN_POINTS} points required`,'err'); return; }
+  servicePoints=servicePoints.filter(p=>p.id!==id);
+  renderServicePoints();
+};
+function renderServicePoints(){
+  const builder=document.getElementById('pointsBuilder'); if(!builder)return;
+  const hint=document.getElementById('pointsCountHint');
+  if(hint) hint.textContent=`${servicePoints.length} of ${MAX_POINTS} points (min ${MIN_POINTS}, max ${MAX_POINTS})`;
+  const addBtn=document.getElementById('addPointBtn');
+  if(addBtn) addBtn.disabled=servicePoints.length>=MAX_POINTS;
+  builder.innerHTML=servicePoints.map((pt,i)=>`
+    <div class="point-row" id="prow_${pt.id}">
+      <span class="point-row-num">${i+1}</span>
+      <input type="text" class="point-input" id="pinput_${pt.id}" value="${esc(pt.value)}"
+        placeholder="e.g. Custom blockchain architecture design"
+        oninput="updatePointValue('${pt.id}', this.value)" maxlength="120" />
+      ${servicePoints.length>MIN_POINTS?`<button type="button" class="point-del-btn" onclick="removeServicePoint('${pt.id}')" title="Remove">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>`:'<span style="width:32px"></span>'}
+    </div>
+  `).join('');
+}
+window.updatePointValue=function(id,val){
+  const pt=servicePoints.find(p=>p.id===id);
+  if(pt) pt.value=val;
+};
+function getServicePointsValues(){
+  return servicePoints.map(p=>p.value.trim()).filter(Boolean);
+}
+function buildServiceTechDropdown(){ renderServiceTechDropdown(''); }
+function renderServiceTechDropdown(query){
+  const dropdown=document.getElementById('serviceTechDropdown'); if(!dropdown)return;
+  const filtered=techList.filter(t=>t.name.toLowerCase().includes(query)&&!selectedServiceTechs.includes(t.name));
+  if(!filtered.length){ dropdown.innerHTML=`<div class="tech-dropdown-item" style="color:var(--t3);cursor:default">No technologies found</div>`; return; }
+  dropdown.innerHTML=filtered.map(t=>`<div class="tech-dropdown-item" onclick="selectServiceTech('${esc(t.name)}')">${esc(t.name)}</div>`).join('');
+}
+window.selectServiceTech=function(name){
+  if(!selectedServiceTechs.includes(name)){ selectedServiceTechs.push(name); renderServiceTechTags(); }
+  const input=document.getElementById('serviceTechInput'), dropdown=document.getElementById('serviceTechDropdown');
+  if(input)input.value=''; dropdown?.classList.remove('show');
+};
+window.removeServiceTech=function(name){ selectedServiceTechs=selectedServiceTechs.filter(t=>t!==name); renderServiceTechTags(); };
+function renderServiceTechTags(){
+  const wrap=document.getElementById('selectedServiceTechTags'); if(!wrap)return;
+  wrap.innerHTML=selectedServiceTechs.map(name=>`<div class="tag-chip"><span>${esc(name)}</span><span class="tag-chip-del" onclick="removeServiceTech('${esc(name)}')" title="Remove">×</span></div>`).join('');
+}
+async function saveService(){
+  const btn=document.getElementById('serviceSubmitBtn'),txt=document.getElementById('serviceSubmitTxt');
+  const name=val('serviceName'),description=val('serviceDescription');
+  if(!name||!description){ toast('Service name and description are required','err'); return; }
+  const points=getServicePointsValues();
+  if(points.length<MIN_POINTS){ toast(`Please fill at least ${MIN_POINTS} feature points`,'err'); return; }
+  btn.disabled=true; txt.innerHTML='<span class="spin"></span>&nbsp;Saving…';
+  try{
+    const data={name,description,points,technologies:[...selectedServiceTechs],updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
+    if(!editingServiceId) data.createdAt=firebase.firestore.FieldValue.serverTimestamp();
+    if(editingServiceId){ await db.collection('services').doc(editingServiceId).update(data); toast('Service updated!','ok'); }
+    else{ await db.collection('services').add(data); toast('Service added!','ok'); }
+    resetServiceForm(); await loadServices(true);
+  }catch(e){ toast('Error: '+e.message,'err'); txt.textContent=editingServiceId?'Update Service':'Add Service'; }
+  finally{ btn.disabled=false; }
+}
+function resetServiceForm(){
+  document.getElementById('serviceForm')?.reset(); editingServiceId=null;
+  selectedServiceTechs=[]; renderServiceTechTags();
+  servicePoints=[];
+  for(let i=0;i<MIN_POINTS;i++) addServicePoint();
+  document.getElementById('serviceFormTitle').textContent='Add New Service';
+  document.getElementById('serviceSubmitTxt').textContent='Add Service';
+  document.getElementById('serviceCancelBtn').style.display='none';
+}
+async function loadServices(showError=false){
+  showTableLoader('serviceTbody','emptyServiceState',4);
+  try{
+    const snap=await db.collection('services').orderBy('createdAt','asc').get();
+    services=snap.docs.map(d=>({id:d.id,...d.data()}));
+    servicePage=1; renderServiceTable(services);
+  }catch(e){ if(showError)toast('Services load error: '+e.message,'err'); services=[]; renderServiceTable([]); }
+}
+function renderServiceTable(list){
+  const tbody=document.getElementById('serviceTbody'),empty=document.getElementById('emptyServiceState');
+  if(!tbody||!empty)return;
+  if(!list.length){ tbody.innerHTML=''; empty.style.display='block'; document.getElementById('servicePagination').innerHTML=''; return; }
+  empty.style.display='none';
+  const {items,page,pages,total}=paginate(list,servicePage); servicePage=page;
+  tbody.innerHTML=items.map(s=>{
+    const pts=(s.points||[]).slice(0,2).map(p=>`<div class="points-preview-item">${esc(p)}</div>`).join('');
+    const more=(s.points||[]).length>2?`<div class="points-preview-more">+${(s.points.length-2)} more</div>`:'';
+    const techs=(s.technologies||[]).slice(0,3).map(t=>`<span class="badge badge-tech" style="margin-right:2px;margin-bottom:2px">${esc(t)}</span>`).join('');
+    return `<tr>
+      <td class="ttl-cell" title="${esc(s.name)}" style="font-weight:700">${esc(s.name)}</td>
+      <td><div class="points-preview">${pts}${more}</div></td>
+      <td style="max-width:180px">${techs}</td>
+      <td><div class="act-cell">
+        <button class="ibtn edit" onclick="editService('${s.id}')" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>
+        <button class="ibtn del" onclick="openDelete('${s.id}','service')" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></button>
+      </div></td>
+    </tr>`;
+  }).join('');
+  buildPagination('servicePagination',page,pages,total,p=>{ servicePage=p; renderServiceTable(list); });
+}
+window.editService=function(id){
+  const s=services.find(x=>x.id===id); if(!s)return toast('Service not found','err');
+  editingServiceId=id;
+  document.getElementById('serviceName').value=s.name||'';
+  document.getElementById('serviceDescription').value=s.description||'';
+  // Load points
+  servicePoints=[];
+  const pts=s.points||[];
+  const total=Math.max(MIN_POINTS,Math.min(MAX_POINTS,pts.length));
+  for(let i=0;i<total;i++){
+    const ptId='pt_'+Date.now()+'_'+i;
+    servicePoints.push({id:ptId, value:pts[i]||''});
+  }
+  renderServicePoints();
+  // Load service techs
+  selectedServiceTechs=[...(s.technologies||[])]; renderServiceTechTags();
+  document.getElementById('serviceFormTitle').textContent='Edit Service';
+  document.getElementById('serviceSubmitTxt').textContent='Update Service';
+  document.getElementById('serviceCancelBtn').style.display='inline-flex';
+  switchSection('serviceSection','navService','Service Management');
+  document.getElementById('serviceForm')?.scrollIntoView({behavior:'smooth',block:'start'});
 };
 
 // ============================================
@@ -639,7 +906,7 @@ window.editProject=function(id){
 // ============================================
 window.openDelete=function(id,type){
   deleteTarget=id; deleteType=type;
-  const titles={blog:'Delete Blog Post',category:'Delete Category',tech:'Delete Technology',project:'Delete Project'};
+  const titles={blog:'Delete Blog Post',category:'Delete Category',tech:'Delete Technology',project:'Delete Project',member:'Delete Team Member',service:'Delete Service'};
   document.getElementById('deleteModalTitle').textContent=titles[type]||'Confirm Delete';
   document.getElementById('deleteModal').classList.add('show');
 };
@@ -649,13 +916,15 @@ function bindModal(){
     const confirmBtn=document.getElementById('confirmDelete');
     confirmBtn.disabled=true; confirmBtn.innerHTML='<span class="spin"></span>&nbsp;Deleting…';
     try{
-      const collMap={blog:'blogs',category:'categories',tech:'technologies',project:'projects'};
+      const collMap={blog:'blogs',category:'categories',tech:'technologies',project:'projects',member:'teamMembers',service:'services'};
       await db.collection(collMap[deleteType]).doc(deleteTarget).delete();
       toast('Deleted successfully','ok'); closeModal();
       if(deleteType==='blog'){ blogs=blogs.filter(x=>x.id!==deleteTarget); renderBlogTable(blogs); }
       if(deleteType==='category'){ categoryList=categoryList.filter(x=>x.id!==deleteTarget); renderCategoryTable(categoryList); buildBlogCategoryDropdown(); buildProjectCategoryDropdown(); }
-      if(deleteType==='tech'){ techList=techList.filter(x=>x.id!==deleteTarget); renderTechTable(techList); buildTechDropdown(); }
+      if(deleteType==='tech'){ techList=techList.filter(x=>x.id!==deleteTarget); renderTechTable(techList); buildTechDropdown(); buildServiceTechDropdown(); }
       if(deleteType==='project'){ projects=projects.filter(x=>x.id!==deleteTarget); renderProjectTable(projects); }
+      if(deleteType==='member'){ teamMembers=teamMembers.filter(x=>x.id!==deleteTarget); renderMemberTable(teamMembers); }
+      if(deleteType==='service'){ services=services.filter(x=>x.id!==deleteTarget); renderServiceTable(services); }
     }catch(e){
       toast('Delete failed: '+e.message,'err'); confirmBtn.disabled=false;
       confirmBtn.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg> Delete`;
@@ -680,6 +949,8 @@ function bindSearchAll(){
   document.getElementById('searchCategories')?.addEventListener('input',e=>{ const q=e.target.value.toLowerCase().trim(); catPage=1; renderCategoryTable(!q?categoryList:categoryList.filter(c=>c.name?.toLowerCase().includes(q))); });
   document.getElementById('searchTech')?.addEventListener('input',e=>{ const q=e.target.value.toLowerCase().trim(); techPage=1; renderTechTable(!q?techList:techList.filter(t=>t.name?.toLowerCase().includes(q))); });
   document.getElementById('searchProjects')?.addEventListener('input',e=>{ const q=e.target.value.toLowerCase().trim(); projectPage=1; renderProjectTable(!q?projects:projects.filter(p=>[p.name,p.category,p.description,...(p.technologies||[])].some(f=>f?.toLowerCase().includes(q)))); });
+  document.getElementById('searchMembers')?.addEventListener('input',e=>{ const q=e.target.value.toLowerCase().trim(); memberPage=1; renderMemberTable(!q?teamMembers:teamMembers.filter(m=>[m.name,m.designation,m.experience].some(f=>f?.toLowerCase().includes(q)))); });
+  document.getElementById('searchServices')?.addEventListener('input',e=>{ const q=e.target.value.toLowerCase().trim(); servicePage=1; renderServiceTable(!q?services:services.filter(s=>[s.name,s.description,...(s.points||[]),...(s.technologies||[])].some(f=>f?.toLowerCase().includes(q)))); });
 }
 
 // ============================================
@@ -693,7 +964,7 @@ function switchSection(sectionId,navId,title){
   document.getElementById('pageTitle').textContent=title;
 }
 function fmtDate(s){ if(!s)return'—'; try{return new Date(s+'T00:00:00').toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});}catch{return s;} }
-function esc(s){ if(!s)return''; const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+function esc(s){ if(!s)return''; const d=document.createElement('div'); d.textContent=String(s); return d.innerHTML; }
 
 // ============================================
 // TOAST
@@ -706,4 +977,4 @@ function toast(msg,type='ok'){
   setTimeout(()=>{ el.classList.add('out'); setTimeout(()=>el.remove(),300); },3500);
 }
 
-console.log('ZettaCoreLab admin.js loaded — Year Picker + Pagination + Loading States');
+console.log('ZettaCoreLab admin.js loaded — Team Member + Service Management + Year Picker + Pagination');
