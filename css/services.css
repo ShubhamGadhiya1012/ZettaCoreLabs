@@ -8,10 +8,10 @@
    SECTION WRAPPER
 ================================= */
 #services-grid {
-    padding: 5rem 0 6rem;
+    padding: 0;
     position: relative;
-    background: var(--bg-dark);
-    z-index: 1;
+    background: var(--bg-dark, #0d0d12);
+    z-index: 10;
 }
 
 #services-grid::before {
@@ -19,24 +19,9 @@
     position: absolute;
     top: 0; left: 0; right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, var(--primary-purple), transparent);
+    background: linear-gradient(90deg, transparent, var(--primary-purple, #7c3aed), transparent);
     opacity: 0.5;
     pointer-events: none;
-    z-index: 0;
-}
-
-/* =================================
-   LAYOUT STACK
-================================= */
-.zcl-svc-layout {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 2.5rem !important;
-    position: relative;
-    z-index: 1;
-    list-style: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
 }
 
 /* =================================
@@ -45,7 +30,7 @@
 .zcl-svc-loading {
     padding: 5rem 2rem;
     text-align: center;
-    color: var(--text-muted);
+    color: var(--text-muted, #a0a0b0);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -56,15 +41,13 @@
     width: 52px;
     height: 52px;
     border: 3px solid rgba(124, 58, 237, 0.15);
-    border-top-color: var(--primary-purple);
+    border-top-color: var(--primary-purple, #7c3aed);
     border-right-color: #a78bfa;
     border-radius: 50%;
     animation: zclSvcSpin 1s linear infinite;
 }
 
-@keyframes zclSvcSpin {
-    to { transform: rotate(360deg); }
-}
+@keyframes zclSvcSpin { to { transform: rotate(360deg); } }
 
 .zcl-svc-loading p {
     font-size: 0.9rem;
@@ -74,54 +57,84 @@
 
 @keyframes zclSvcPulse {
     0%, 100% { opacity: 0.5; }
-    50% { opacity: 1; }
+    50%       { opacity: 1; }
+}
+
+/* =================================
+   STACK TRACK — scroll spacer
+================================= */
+.zcl-svc-stack-track {
+    position: relative;
+    /* height set by JS */
+}
+
+/* =================================
+   STICKY WINDOW
+================================= */
+.zcl-svc-stack-window {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow: hidden;
+    background: var(--bg-dark, #0d0d12);
+
+    /* Center the card vertically inside the viewport */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* =================================
+   CARD WRAPPER — JS drives translateY
+   No absolute positioning — flex child
+   so card is naturally centered
+================================= */
+.zcl-svc-card-wrap {
+    position: absolute;   /* absolute inside flex container = centered anchor */
+    /* top/left/right handled so card centers */
+    left: 0;
+    right: 0;
+    /* vertical center: translate from middle of window */
+    top: 50%;
+    margin-top: -1px;     /* micro correction */
+    padding: 0 max(1.5rem, calc((100% - 1100px) / 2));  /* wider max-width */
+    will-change: transform;
+    box-sizing: border-box;
 }
 
 /* =================================
    SERVICE CARD
 ================================= */
 .zcl-svc-card {
-    /* Hard reset — fight all inherited styles */
     all: initial;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     color: #ffffff;
     line-height: 1.6;
     box-sizing: border-box;
 
-    /* Layout */
     display: grid !important;
     grid-template-columns: 80px 1fr !important;
     gap: 2rem !important;
     align-items: start !important;
 
-    /* Visual */
     background: #121218 !important;
     border: 1px solid #252530 !important;
     border-radius: 20px !important;
     padding: 3rem !important;
 
-    /* Effects */
     position: relative;
     overflow: hidden;
-
-    /* Scroll-reveal start state */
-    opacity: 0;
-    transform: translateY(60px);
-    transition:
-        opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-        transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-        border-color 0.3s ease,
-        box-shadow 0.3s ease,
-        background 0.3s ease !important;
+    width: 100%;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5), 0 2px 0 rgba(124, 58, 237, 0.08) !important;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease !important;
+    will-change: transform;
 }
 
-/* TOP LINE — completely removed (no ::before on card) */
 .zcl-svc-card::before {
     display: none !important;
     content: none !important;
 }
 
-/* Ambient glow */
 .zcl-svc-card::after {
     content: '';
     position: absolute;
@@ -134,25 +147,9 @@
     z-index: 0;
 }
 
-/* Scroll-reveal visible */
-.zcl-svc-card.zcl-svc-visible {
-    opacity: 1 !important;
-    transform: translateY(0) !important;
-}
-
-/* Scrolled above viewport */
-.zcl-svc-card.zcl-svc-exit-up {
-    opacity: 0 !important;
-    transform: translateY(-40px) !important;
-    transition:
-        opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1),
-        transform 0.45s cubic-bezier(0.22, 1, 0.36, 1) !important;
-}
-
-/* Hover — border only, no top line */
 .zcl-svc-card:hover {
     border-color: #7c3aed !important;
-    box-shadow: 0 20px 60px rgba(124, 58, 237, 0.18), 0 0 0 1px rgba(124, 58, 237, 0.08) !important;
+    box-shadow: 0 20px 60px rgba(124, 58, 237, 0.22), 0 0 0 1px rgba(124, 58, 237, 0.08) !important;
     background: #1a1a24 !important;
 }
 
@@ -205,9 +202,7 @@
     transform: scale(1.07) rotate(-4deg) !important;
 }
 
-.zcl-svc-card:hover .zcl-svc-icon svg {
-    color: #a78bfa !important;
-}
+.zcl-svc-card:hover .zcl-svc-icon svg { color: #a78bfa !important; }
 
 /* =================================
    CONTENT COLUMN
@@ -222,7 +217,6 @@
     box-sizing: border-box !important;
 }
 
-/* Title */
 .zcl-svc-title {
     font-size: 1.75rem !important;
     font-weight: 800 !important;
@@ -236,7 +230,6 @@
     -webkit-text-fill-color: #ffffff !important;
 }
 
-/* Description */
 .zcl-svc-desc {
     color: #a0a0b0 !important;
     line-height: 1.8 !important;
@@ -246,7 +239,7 @@
 }
 
 /* =================================
-   FEATURE POINTS LIST
+   FEATURE POINTS
 ================================= */
 .zcl-svc-points {
     display: grid !important;
@@ -271,17 +264,9 @@
     transition: color 0.2s !important;
 }
 
-/* Remove ::before bullet from style.css .service-features li */
-.zcl-svc-point::before {
-    display: none !important;
-    content: none !important;
-}
+.zcl-svc-point::before { display: none !important; content: none !important; }
+.zcl-svc-point:hover   { color: #ffffff !important; }
 
-.zcl-svc-point:hover {
-    color: #ffffff !important;
-}
-
-/* Checkmark circle */
 .zcl-svc-tick {
     width: 20px !important;
     height: 20px !important;
@@ -396,9 +381,7 @@
     transition: transform 0.25s ease !important;
 }
 
-.zcl-svc-btn:hover svg {
-    transform: translateX(4px) !important;
-}
+.zcl-svc-btn:hover svg { transform: translateX(4px) !important; }
 
 /* =================================
    EMPTY STATE
@@ -410,99 +393,103 @@
 }
 
 .zcl-svc-empty-icon {
-    width: 80px;
-    height: 80px;
+    width: 80px; height: 80px;
     background: rgba(124, 58, 237, 0.06);
     border: 1px solid rgba(124, 58, 237, 0.18);
     border-radius: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex; align-items: center; justify-content: center;
     margin: 0 auto 1.5rem;
     overflow: hidden;
 }
 
 .zcl-svc-empty-icon svg {
-    width: 40px !important;
-    height: 40px !important;
-    max-width: 40px !important;
-    display: block;
-    color: rgba(124, 58, 237, 0.4);
-    fill: none;
-    stroke: currentColor;
+    width: 40px !important; height: 40px !important; max-width: 40px !important;
+    display: block; color: rgba(124, 58, 237, 0.4); fill: none; stroke: currentColor;
 }
 
-.zcl-svc-empty h3 {
-    font-size: 1.4rem;
-    color: #a0a0b0;
-    margin-bottom: 0.5rem;
-}
-
-.zcl-svc-empty p {
-    color: #6b6b7b;
-    font-size: 0.9rem;
-}
+.zcl-svc-empty h3 { font-size: 1.4rem; color: #a0a0b0; margin-bottom: 0.5rem; }
+.zcl-svc-empty p  { color: #6b6b7b; font-size: 0.9rem; }
 
 /* =================================
    RESPONSIVE — TABLET ≤1024px
 ================================= */
 @media (max-width: 1024px) {
+    .zcl-svc-card-wrap {
+        padding: 0 max(1rem, calc((100% - 860px) / 2));
+    }
     .zcl-svc-card {
         padding: 2.25rem !important;
         gap: 1.5rem !important;
         grid-template-columns: 68px 1fr !important;
     }
-
     .zcl-svc-icon {
         width: 68px !important; height: 68px !important;
         min-width: 68px !important; max-width: 68px !important;
         min-height: 68px !important; max-height: 68px !important;
     }
-
     .zcl-svc-icon svg {
         width: 34px !important; height: 34px !important;
         max-width: 34px !important; max-height: 34px !important;
     }
-
     .zcl-svc-title { font-size: 1.5rem !important; }
 }
 
 /* =================================
    RESPONSIVE — MOBILE ≤768px
+   Disable stack → normal scroll flow
 ================================= */
 @media (max-width: 768px) {
     #services-grid { padding: 3rem 0 4rem; }
 
-    .zcl-svc-layout { gap: 1.5rem !important; }
+    .zcl-svc-stack-window {
+        position: relative !important;
+        top: auto !important;
+        height: auto !important;
+        overflow: visible !important;
+        background: transparent !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 1.5rem !important;
+        padding: 2rem 0 !important;
+    }
+
+    .zcl-svc-card-wrap {
+        position: relative !important;
+        top: auto !important;
+        margin-top: 0 !important;
+        transform: none !important;
+        will-change: auto !important;
+        padding: 0 1rem !important;
+    }
+
+    .zcl-svc-stack-track { height: auto !important; }
 
     .zcl-svc-card {
         grid-template-columns: 1fr !important;
         padding: 1.75rem !important;
         gap: 1.25rem !important;
     }
-
     .zcl-svc-icon {
         width: 60px !important; height: 60px !important;
         min-width: 60px !important; max-width: 60px !important;
         min-height: 60px !important; max-height: 60px !important;
         border-radius: 14px !important;
     }
-
     .zcl-svc-icon svg {
         width: 30px !important; height: 30px !important;
         max-width: 30px !important; max-height: 30px !important;
     }
-
-    .zcl-svc-title { font-size: 1.3rem !important; }
+    .zcl-svc-title  { font-size: 1.3rem !important; }
     .zcl-svc-points { grid-template-columns: 1fr !important; }
-    .zcl-svc-btn { width: 100% !important; justify-content: center !important; }
+    .zcl-svc-btn    { width: 100% !important; justify-content: center !important; }
 }
 
 /* =================================
    RESPONSIVE — SMALL ≤480px
 ================================= */
 @media (max-width: 480px) {
-    .zcl-svc-card { padding: 1.4rem !important; border-radius: 16px !important; }
+    .zcl-svc-card  { padding: 1.4rem !important; border-radius: 16px !important; }
     .zcl-svc-title { font-size: 1.2rem !important; }
     .zcl-svc-desc  { font-size: 0.9rem !important; }
     .zcl-svc-chip  { font-size: 0.73rem !important; padding: 0.3rem 0.75rem !important; }
