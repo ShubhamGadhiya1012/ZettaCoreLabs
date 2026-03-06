@@ -12,9 +12,9 @@ const SVC_ICONS = [
 ];
 
 // ── Config ────────────────────────────────────────────────────────────────────
-const SCROLL_PER_CARD = 700;  // px of scroll per card transition
-const STACK_OFFSET    = 20;   // px a settled card shifts DOWN per card stacked on top
-const EASING          = 0.1;  // lerp smoothing
+const SCROLL_PER_CARD = 700;
+const STACK_OFFSET    = 20;
+const EASING          = 0.1;
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let cardWraps    = [];
@@ -61,46 +61,21 @@ function renderServices() {
     stackTrackEl = document.getElementById('zclStackTrack');
     cardWraps    = allServices.map((_, i) => document.getElementById(`zclWrap${i}`));
 
-    // Height: give enough scroll room for every card + one extra hold at the end
     stackTrackEl.style.height = `${total * SCROLL_PER_CARD + window.innerHeight}px`;
 
-    // ── The card-wrap has CSS: top:50%, so translateY(0) = vertically centred.
-    // "Resting/centred" Y = -50% of card height. We achieve this by setting
-    // the wrap's translateY to -cardHeight/2 when settled.
-    // But since CSS already does top:50%, translateY(0) IS the centre.
-    // So: settled  = translateY(0)  → card centred
-    //     below    = translateY(+vh) → card below viewport
-    //     stacked  = translateY(+STACK_OFFSET * n) → card nudges downward
-
     const wh = window.innerHeight;
-
-    // Card 0 starts centred (translateY = 0), rest start below
     cardWraps.forEach((wrap, i) => {
-        // CSS: top:50%; transform:translateY(X) where X=0 = centred
-        // We also need to counteract the 50% so the card truly centres:
-        // use CSS transform: translateY(calc(-50% + Xpx)) 
-        // But since JS sets the transform directly, we compute the offset
-        // as a pixel value relative to the window.
-        // centreOffset = -(cardHeight/2) — but we don't know card height yet.
-        // Solution: use CSS top:50% + translateY(-50%) base, then add our offset.
-        // We'll store our "animation offset" (Y) and always apply:
-        //   transform: translateY(calc(-50% + Ypx))
         const y = i === 0 ? 0 : wh;
         currentY[i] = y;
         targetY[i]  = y;
-        applyTransform(wrap, y);
-        wrap.style.zIndex = i + 1;
+        wrap.style.transform = `translateY(calc(-50% + ${y}px))`;
+        wrap.style.zIndex    = String(i + 1);
     });
 
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onResize, { passive: true });
     onScroll();
     rafLoop();
-}
-
-// ── Apply transform: top:50% + translateY(-50% + Ypx) = true centre + offset ─
-function applyTransform(wrap, y) {
-    wrap.style.transform = `translateY(calc(-50% + ${y}px))`;
 }
 
 // ── Scroll logic ──────────────────────────────────────────────────────────────
@@ -112,67 +87,51 @@ function onScroll() {
     const scrolled = -stackTrackEl.getBoundingClientRect().top;
 
     cardWraps.forEach((wrap, i) => {
-        // Card i fully settled at: i * SCROLL_PER_CARD
-        // Card i slides in from:   (i-1) * SCROLL_PER_CARD  →  i * SCROLL_PER_CARD
-        // (card 0 is already visible at scroll=0, slides in during first SCROLL_PER_CARD)
-
         const settleAt  = i * SCROLL_PER_CARD;
-        const slideFrom = settleAt - SCROLL_PER_CARD; // can be negative for card 0
+        const slideFrom = settleAt - SCROLL_PER_CARD;
 
         let y, zIndex;
 
         if (i === 0) {
             if (scrolled <= 0) {
-                // Before track starts — card 0 sits centred
-                y      = 0;
-                zIndex = 1;
+                y = 0; zIndex = 1;
             } else if (scrolled < SCROLL_PER_CARD) {
-                // Card 1 is sliding in over card 0 — card 0 stays centred
-                y      = 0;
-                zIndex = 1;
+                y = 0; zIndex = 1;
             } else {
-                // Cards are stacking on top of card 0 — push it DOWN slightly
                 const above = Math.min(
                     Math.floor((scrolled - SCROLL_PER_CARD) / SCROLL_PER_CARD),
                     total - 1
                 );
-                y      = above * STACK_OFFSET;
-                zIndex = 1;
+                y = above * STACK_OFFSET; zIndex = 1;
             }
         } else {
             if (scrolled < slideFrom) {
-                // Not yet — wait below viewport
-                y      = wh + 100;
-                zIndex = i + 1;
+                y = wh + 100; zIndex = i + 1;
             } else if (scrolled < settleAt) {
-                // Sliding in from below
-                const progress = (scrolled - slideFrom) / SCROLL_PER_CARD; // 0→1
-                y      = wh * (1 - progress);          // wh → 0  (enters from bottom, lands at centre)
-                zIndex = total + 10 + i;               // on top of everything while sliding
+                const progress = (scrolled - slideFrom) / SCROLL_PER_CARD;
+                y      = wh * (1 - progress);
+                zIndex = total + 10 + i;
             } else {
-                // Fully settled at centre — subsequent cards stack on top, push this one down
                 const above = Math.min(
                     Math.floor((scrolled - settleAt) / SCROLL_PER_CARD),
                     total - 1 - i
                 );
-                y      = above * STACK_OFFSET;
-                zIndex = i + 1;
+                y = above * STACK_OFFSET; zIndex = i + 1;
             }
         }
 
         targetY[i]        = y;
-        wrap.style.zIndex = zIndex;
+        wrap.style.zIndex = String(zIndex);
     });
 }
 
 // ── rAF lerp ──────────────────────────────────────────────────────────────────
 function rafLoop() {
     requestAnimationFrame(rafLoop);
-
     cardWraps.forEach((wrap, i) => {
         const diff = targetY[i] - currentY[i];
         currentY[i] += Math.abs(diff) > 0.05 ? diff * EASING : diff;
-        applyTransform(wrap, currentY[i]);
+        wrap.style.transform = `translateY(calc(-50% + ${currentY[i]}px))`;
     });
 }
 
