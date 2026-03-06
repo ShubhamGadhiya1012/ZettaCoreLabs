@@ -1,120 +1,138 @@
 // =================================
 // SERVICES PAGE — services.js
-// Dynamic · Firebase · SVG Logo Loader
+// Dynamic · Firebase · Scroll Reveal
+// Uses zcl-svc-* class names (zero conflicts)
 // =================================
 'use strict';
 
 let allServices = [];
 
+// Icon paths pool — one per card, cycles
+const SVC_ICONS = [
+    // Blockchain layers
+    `<path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>`,
+    // Document / Smart Contract
+    `<path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>`,
+    // Globe / Web3
+    `<path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>`,
+    // Lightbulb / AI
+    `<path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>`,
+    // Lock / Security
+    `<path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>`,
+    // Stack / Token
+    `<path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>`,
+];
+
 // =================================
-// PAGE INIT
+// INIT
 // =================================
 document.addEventListener('DOMContentLoaded', function () {
-    console.log('Services page loaded with Firebase');
-    showBlockchainLoader();
     loadServicesFromFirestore();
 });
 
 // =================================
-// LOAD SERVICES FROM FIRESTORE
+// FIRESTORE FETCH
 // =================================
 async function loadServicesFromFirestore() {
     try {
-        console.log('📂 Loading services from Firestore...');
-
         const snapshot = await db.collection('services')
             .orderBy('createdAt', 'asc')
             .get();
 
-        allServices = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
+        allServices = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-        console.log('✅ Loaded', allServices.length, 'services from Firestore');
-
-        // Hide loader immediately when data is ready
-        hideBlockchainLoader();
+        // Hide full-page loader (from loader.js)
+        if (typeof hideBlockchainLoader === 'function') hideBlockchainLoader();
 
         if (allServices.length > 0) {
             renderServices();
         } else {
-            renderServicesEmpty();
+            renderEmpty();
         }
 
-    } catch (error) {
-        console.error('❌ Error loading services:', error);
-        hideBlockchainLoader();
-        renderServicesEmpty();
+    } catch (err) {
+        console.error('Services load error:', err);
+        if (typeof hideBlockchainLoader === 'function') hideBlockchainLoader();
+        renderEmpty();
     }
 }
 
 // =================================
-// RENDER SERVICE CARDS
+// RENDER
 // =================================
 function renderServices() {
     const container = document.getElementById('servicesDynamicContainer');
     if (!container) return;
 
-    container.innerHTML = allServices.map((svc, index) => buildServiceCard(svc, index)).join('');
+    container.innerHTML = allServices.map(buildCard).join('');
+
+    // Kick off scroll observer after DOM is populated
+    requestAnimationFrame(() => observeCards());
 }
 
-function buildServiceCard(svc, index) {
-    const delay = (index * 0.07).toFixed(2);
+function buildCard(svc, index) {
+    const iconPath = SVC_ICONS[index % SVC_ICONS.length];
 
-    // Feature points with tick marks
     const pointsHtml = (svc.points || []).map(pt => `
-        <div class="service-point-item">
-            <span class="service-point-tick">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+        <li class="zcl-svc-point">
+            <span class="zcl-svc-tick">
+                <svg viewBox="0 0 24 24">
                     <polyline points="20 6 9 17 4 12"/>
                 </svg>
             </span>
-            <span>${escHtml(pt)}</span>
-        </div>
+            <span>${esc(pt)}</span>
+        </li>
     `).join('');
 
-    // Technology chips
     const techsHtml = (svc.technologies || []).map(t =>
-        `<span class="service-tech-chip">${escHtml(t)}</span>`
+        `<span class="zcl-svc-chip">${esc(t)}</span>`
     ).join('');
 
     return `
-        <div class="service-card-dyn" style="animation-delay:${delay}s">
-            <div class="service-card-header">
-                <div class="service-card-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-                    </svg>
-                </div>
-                <div class="service-card-titles">
-                    <h3 class="service-card-name">${escHtml(svc.name)}</h3>
-                </div>
+        <div class="zcl-svc-card" data-index="${index}">
+
+            <!-- Icon -->
+            <div class="zcl-svc-icon">
+                <svg viewBox="0 0 24 24">
+                    ${iconPath}
+                </svg>
             </div>
-            <div class="service-card-body">
-                <p class="service-card-desc">${escHtml(svc.description)}</p>
-                ${pointsHtml ? `<div class="service-card-points">${pointsHtml}</div>` : ''}
-                ${techsHtml ? `<div class="service-card-techs">${techsHtml}</div>` : ''}
-            </div>
-            <div class="service-card-footer">
-                <a href="contact.html" class="service-cta-btn">
+
+            <!-- Content -->
+            <div class="zcl-svc-content">
+                <h2 class="zcl-svc-title">${esc(svc.name)}</h2>
+
+                ${svc.description
+                    ? `<p class="zcl-svc-desc">${esc(svc.description)}</p>`
+                    : ''}
+
+                ${pointsHtml
+                    ? `<ul class="zcl-svc-points">${pointsHtml}</ul>`
+                    : ''}
+
+                ${techsHtml
+                    ? `<div class="zcl-svc-techs">${techsHtml}</div>`
+                    : ''}
+
+                <a href="contact.html" class="zcl-svc-btn">
                     Get Started
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <svg viewBox="0 0 24 24">
                         <polyline points="9 18 15 12 9 6"/>
                     </svg>
                 </a>
             </div>
+
         </div>
     `;
 }
 
-function renderServicesEmpty() {
+function renderEmpty() {
     const container = document.getElementById('servicesDynamicContainer');
     if (!container) return;
     container.innerHTML = `
-        <div class="services-empty">
-            <div class="services-empty-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <div class="zcl-svc-empty">
+            <div class="zcl-svc-empty-icon">
+                <svg viewBox="0 0 24 24">
                     <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
                 </svg>
             </div>
@@ -125,13 +143,45 @@ function renderServicesEmpty() {
 }
 
 // =================================
-// HELPERS
+// SCROLL REVEAL — IntersectionObserver
 // =================================
-function escHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = String(text);
-    return div.innerHTML;
+function observeCards() {
+    const cards = document.querySelectorAll('.zcl-svc-card');
+    if (!cards.length) return;
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            const card = entry.target;
+
+            if (entry.isIntersecting) {
+                card.classList.remove('zcl-svc-exit-up');
+                card.classList.add('zcl-svc-visible');
+            } else {
+                if (entry.boundingClientRect.top < 0) {
+                    card.classList.remove('zcl-svc-visible');
+                    card.classList.add('zcl-svc-exit-up');
+                } else {
+                    card.classList.remove('zcl-svc-visible', 'zcl-svc-exit-up');
+                }
+            }
+        });
+    }, {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    });
+
+    cards.forEach((card, i) => {
+        card.style.transitionDelay = `${i * 0.07}s`;
+        observer.observe(card);
+    });
 }
 
-console.log('✅ services.js with dynamic services loaded');
+// =================================
+// HELPER — XSS-safe HTML escape
+// =================================
+function esc(text) {
+    if (!text) return '';
+    const d = document.createElement('div');
+    d.textContent = String(text);
+    return d.innerHTML;
+}

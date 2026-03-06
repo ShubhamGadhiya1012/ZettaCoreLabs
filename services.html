@@ -43,16 +43,19 @@
       </div>
     </section>
 
-    <!-- ===== DYNAMIC SERVICES GRID ===== -->
+    <!-- ===== DYNAMIC SERVICES SECTION ===== -->
     <section id="services-grid">
       <div class="container">
-        <!-- Dynamic layout — populated by services.js -->
-        <div class="services-dynamic-layout" id="servicesDynamicContainer">
-          <!-- Loading state -->
-          <div class="services-loading" id="servicesLoadingState">
-            <div class="service-spinner"></div>
+
+        <!-- zcl-svc-layout = flex column wrapper (services.css) -->
+        <div class="zcl-svc-layout" id="servicesDynamicContainer">
+
+          <!-- Loading spinner shown until Firebase responds -->
+          <div class="zcl-svc-loading" id="servicesLoadingState">
+            <div class="zcl-svc-spinner"></div>
             <p>Loading services…</p>
           </div>
+
         </div>
       </div>
     </section>
@@ -158,7 +161,7 @@
       </div>
     </footer>
 
-    <!-- Firebase -->
+    <!-- Scripts -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>

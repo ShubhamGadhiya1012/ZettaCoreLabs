@@ -1,0 +1,510 @@
+/* =================================
+   SERVICES PAGE — services.css
+   ALL classes use zcl-svc- prefix
+   Zero conflicts with style.css
+================================= */
+
+/* =================================
+   SECTION WRAPPER
+================================= */
+#services-grid {
+    padding: 5rem 0 6rem;
+    position: relative;
+    background: var(--bg-dark);
+    z-index: 1;
+}
+
+#services-grid::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--primary-purple), transparent);
+    opacity: 0.5;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* =================================
+   LAYOUT STACK
+================================= */
+.zcl-svc-layout {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2.5rem !important;
+    position: relative;
+    z-index: 1;
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* =================================
+   LOADING STATE
+================================= */
+.zcl-svc-loading {
+    padding: 5rem 2rem;
+    text-align: center;
+    color: var(--text-muted);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.zcl-svc-spinner {
+    width: 52px;
+    height: 52px;
+    border: 3px solid rgba(124, 58, 237, 0.15);
+    border-top-color: var(--primary-purple);
+    border-right-color: #a78bfa;
+    border-radius: 50%;
+    animation: zclSvcSpin 1s linear infinite;
+}
+
+@keyframes zclSvcSpin {
+    to { transform: rotate(360deg); }
+}
+
+.zcl-svc-loading p {
+    font-size: 0.9rem;
+    font-weight: 500;
+    animation: zclSvcPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes zclSvcPulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+}
+
+/* =================================
+   SERVICE CARD
+================================= */
+.zcl-svc-card {
+    /* Hard reset — fight all inherited styles */
+    all: initial;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: #ffffff;
+    line-height: 1.6;
+    box-sizing: border-box;
+
+    /* Layout */
+    display: grid !important;
+    grid-template-columns: 80px 1fr !important;
+    gap: 2rem !important;
+    align-items: start !important;
+
+    /* Visual */
+    background: #121218 !important;
+    border: 1px solid #252530 !important;
+    border-radius: 20px !important;
+    padding: 3rem !important;
+
+    /* Effects */
+    position: relative;
+    overflow: hidden;
+
+    /* Scroll-reveal start state */
+    opacity: 0;
+    transform: translateY(60px);
+    transition:
+        opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+        border-color 0.3s ease,
+        box-shadow 0.3s ease,
+        background 0.3s ease !important;
+}
+
+/* TOP LINE — completely removed (no ::before on card) */
+.zcl-svc-card::before {
+    display: none !important;
+    content: none !important;
+}
+
+/* Ambient glow */
+.zcl-svc-card::after {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 220px; height: 220px;
+    background: radial-gradient(circle, rgba(124, 58, 237, 0.07) 0%, transparent 70%);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    z-index: 0;
+}
+
+/* Scroll-reveal visible */
+.zcl-svc-card.zcl-svc-visible {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+}
+
+/* Scrolled above viewport */
+.zcl-svc-card.zcl-svc-exit-up {
+    opacity: 0 !important;
+    transform: translateY(-40px) !important;
+    transition:
+        opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.45s cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+/* Hover — border only, no top line */
+.zcl-svc-card:hover {
+    border-color: #7c3aed !important;
+    box-shadow: 0 20px 60px rgba(124, 58, 237, 0.18), 0 0 0 1px rgba(124, 58, 237, 0.08) !important;
+    background: #1a1a24 !important;
+}
+
+.zcl-svc-card:hover::after { opacity: 1; }
+
+/* =================================
+   ICON BOX
+================================= */
+.zcl-svc-icon {
+    width: 80px !important;
+    height: 80px !important;
+    min-width: 80px !important;
+    max-width: 80px !important;
+    min-height: 80px !important;
+    max-height: 80px !important;
+    background: rgba(124, 58, 237, 0.1) !important;
+    border: 1px solid rgba(124, 58, 237, 0.25) !important;
+    border-radius: 16px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    overflow: hidden !important;
+    position: relative;
+    z-index: 1;
+    box-sizing: border-box !important;
+    transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+.zcl-svc-icon svg {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    max-width: 40px !important;
+    min-height: 40px !important;
+    max-height: 40px !important;
+    display: block !important;
+    flex-shrink: 0 !important;
+    color: #7c3aed !important;
+    fill: none !important;
+    stroke: currentColor !important;
+    stroke-width: 2 !important;
+    transition: color 0.3s ease !important;
+}
+
+.zcl-svc-card:hover .zcl-svc-icon {
+    background: rgba(124, 58, 237, 0.2) !important;
+    border-color: rgba(124, 58, 237, 0.5) !important;
+    box-shadow: 0 0 24px rgba(124, 58, 237, 0.3) !important;
+    transform: scale(1.07) rotate(-4deg) !important;
+}
+
+.zcl-svc-card:hover .zcl-svc-icon svg {
+    color: #a78bfa !important;
+}
+
+/* =================================
+   CONTENT COLUMN
+================================= */
+.zcl-svc-content {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1.25rem !important;
+    min-width: 0 !important;
+    position: relative;
+    z-index: 1;
+    box-sizing: border-box !important;
+}
+
+/* Title */
+.zcl-svc-title {
+    font-size: 1.75rem !important;
+    font-weight: 800 !important;
+    color: #ffffff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.2 !important;
+    letter-spacing: -0.02em !important;
+    border: none !important;
+    background: none !important;
+    -webkit-text-fill-color: #ffffff !important;
+}
+
+/* Description */
+.zcl-svc-desc {
+    color: #a0a0b0 !important;
+    line-height: 1.8 !important;
+    font-size: 0.975rem !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* =================================
+   FEATURE POINTS LIST
+================================= */
+.zcl-svc-points {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)) !important;
+    gap: 0.6rem !important;
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.zcl-svc-point {
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 0.6rem !important;
+    font-size: 0.875rem !important;
+    color: #a0a0b0 !important;
+    line-height: 1.5 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: none !important;
+    border: none !important;
+    transition: color 0.2s !important;
+}
+
+/* Remove ::before bullet from style.css .service-features li */
+.zcl-svc-point::before {
+    display: none !important;
+    content: none !important;
+}
+
+.zcl-svc-point:hover {
+    color: #ffffff !important;
+}
+
+/* Checkmark circle */
+.zcl-svc-tick {
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px !important;
+    max-width: 20px !important;
+    border-radius: 50% !important;
+    background: rgba(16, 185, 129, 0.1) !important;
+    border: 1px solid rgba(16, 185, 129, 0.3) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    margin-top: 1px !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+    transition: all 0.25s !important;
+}
+
+.zcl-svc-tick svg {
+    width: 11px !important;
+    height: 11px !important;
+    min-width: 11px !important;
+    max-width: 11px !important;
+    display: block !important;
+    color: #10b981 !important;
+    fill: none !important;
+    stroke: currentColor !important;
+    stroke-width: 2.5 !important;
+}
+
+.zcl-svc-point:hover .zcl-svc-tick {
+    background: rgba(16, 185, 129, 0.2) !important;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.25) !important;
+}
+
+/* =================================
+   TECH CHIPS
+================================= */
+.zcl-svc-techs {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.6rem !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.zcl-svc-chip {
+    display: inline-flex !important;
+    align-items: center !important;
+    padding: 0.4rem 1rem !important;
+    background: rgba(124, 58, 237, 0.08) !important;
+    border: 1px solid rgba(124, 58, 237, 0.3) !important;
+    border-radius: 999px !important;
+    font-size: 0.8rem !important;
+    font-weight: 700 !important;
+    color: #a78bfa !important;
+    letter-spacing: 0.04em !important;
+    white-space: nowrap !important;
+    cursor: default !important;
+    transition: all 0.2s !important;
+    text-decoration: none !important;
+}
+
+.zcl-svc-chip:hover {
+    background: rgba(124, 58, 237, 0.18) !important;
+    border-color: rgba(167, 139, 250, 0.55) !important;
+    color: #c4b5fd !important;
+    transform: translateY(-2px) !important;
+}
+
+/* =================================
+   CTA BUTTON
+================================= */
+.zcl-svc-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    padding: 0.875rem 2rem !important;
+    background: linear-gradient(135deg, #7c3aed, #6d28d9) !important;
+    border-radius: 30px !important;
+    color: #ffffff !important;
+    font-size: 0.9rem !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    align-self: flex-start !important;
+    box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3) !important;
+    letter-spacing: 0.02em !important;
+    border: none !important;
+    font-family: inherit !important;
+    outline: none !important;
+}
+
+.zcl-svc-btn:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 10px 28px rgba(124, 58, 237, 0.5) !important;
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed) !important;
+    color: #ffffff !important;
+}
+
+.zcl-svc-btn svg {
+    width: 16px !important;
+    height: 16px !important;
+    min-width: 16px !important;
+    max-width: 16px !important;
+    display: block !important;
+    flex-shrink: 0 !important;
+    fill: none !important;
+    stroke: currentColor !important;
+    stroke-width: 2.5 !important;
+    transition: transform 0.25s ease !important;
+}
+
+.zcl-svc-btn:hover svg {
+    transform: translateX(4px) !important;
+}
+
+/* =================================
+   EMPTY STATE
+================================= */
+.zcl-svc-empty {
+    padding: 5rem 2rem;
+    text-align: center;
+    color: #6b6b7b;
+}
+
+.zcl-svc-empty-icon {
+    width: 80px;
+    height: 80px;
+    background: rgba(124, 58, 237, 0.06);
+    border: 1px solid rgba(124, 58, 237, 0.18);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    overflow: hidden;
+}
+
+.zcl-svc-empty-icon svg {
+    width: 40px !important;
+    height: 40px !important;
+    max-width: 40px !important;
+    display: block;
+    color: rgba(124, 58, 237, 0.4);
+    fill: none;
+    stroke: currentColor;
+}
+
+.zcl-svc-empty h3 {
+    font-size: 1.4rem;
+    color: #a0a0b0;
+    margin-bottom: 0.5rem;
+}
+
+.zcl-svc-empty p {
+    color: #6b6b7b;
+    font-size: 0.9rem;
+}
+
+/* =================================
+   RESPONSIVE — TABLET ≤1024px
+================================= */
+@media (max-width: 1024px) {
+    .zcl-svc-card {
+        padding: 2.25rem !important;
+        gap: 1.5rem !important;
+        grid-template-columns: 68px 1fr !important;
+    }
+
+    .zcl-svc-icon {
+        width: 68px !important; height: 68px !important;
+        min-width: 68px !important; max-width: 68px !important;
+        min-height: 68px !important; max-height: 68px !important;
+    }
+
+    .zcl-svc-icon svg {
+        width: 34px !important; height: 34px !important;
+        max-width: 34px !important; max-height: 34px !important;
+    }
+
+    .zcl-svc-title { font-size: 1.5rem !important; }
+}
+
+/* =================================
+   RESPONSIVE — MOBILE ≤768px
+================================= */
+@media (max-width: 768px) {
+    #services-grid { padding: 3rem 0 4rem; }
+
+    .zcl-svc-layout { gap: 1.5rem !important; }
+
+    .zcl-svc-card {
+        grid-template-columns: 1fr !important;
+        padding: 1.75rem !important;
+        gap: 1.25rem !important;
+    }
+
+    .zcl-svc-icon {
+        width: 60px !important; height: 60px !important;
+        min-width: 60px !important; max-width: 60px !important;
+        min-height: 60px !important; max-height: 60px !important;
+        border-radius: 14px !important;
+    }
+
+    .zcl-svc-icon svg {
+        width: 30px !important; height: 30px !important;
+        max-width: 30px !important; max-height: 30px !important;
+    }
+
+    .zcl-svc-title { font-size: 1.3rem !important; }
+    .zcl-svc-points { grid-template-columns: 1fr !important; }
+    .zcl-svc-btn { width: 100% !important; justify-content: center !important; }
+}
+
+/* =================================
+   RESPONSIVE — SMALL ≤480px
+================================= */
+@media (max-width: 480px) {
+    .zcl-svc-card { padding: 1.4rem !important; border-radius: 16px !important; }
+    .zcl-svc-title { font-size: 1.2rem !important; }
+    .zcl-svc-desc  { font-size: 0.9rem !important; }
+    .zcl-svc-chip  { font-size: 0.73rem !important; padding: 0.3rem 0.75rem !important; }
+    .zcl-svc-techs { gap: 0.4rem !important; }
+}
