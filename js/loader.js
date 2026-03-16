@@ -27,31 +27,34 @@ function showBlockchainLoader() {
                 alt="ZettaCoreLab"
                 onerror="this.style.display='none'"
             />
-            <div class="logo-counter" id="loaderCounter">1</div>
+            <div class="logo-counter" id="loaderCounter">0</div>
         </div>
     `;
 
     document.body.appendChild(overlay);
 
-    // Animate counter 1 → 100
-    let count = 1;
+    // Animate counter 0 → 21, then loop back to 0
+    let count = 0;
     const counter = overlay.querySelector('#loaderCounter');
 
     _loaderInterval = setInterval(() => {
         if (!counter) return;
+        
         count++;
+        
+        // Reset to 0 after reaching 21
+        if (count > 21) {
+            count = 0;
+        }
+        
         counter.textContent = count;
 
         // Flash animation reset trick
         counter.style.animation = 'none';
         void counter.offsetWidth;
         counter.style.animation = 'counterFlash 0.12s ease-out';
-
-        if (count >= 100) {
-            clearInterval(_loaderInterval);
-            _loaderInterval = null;
-        }
-    }, 30);
+        
+    }, 100); // Adjust timing as needed (100ms per count)
 }
 
 function hideBlockchainLoader() {
